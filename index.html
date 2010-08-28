@@ -36,7 +36,16 @@
         }
         
         function formatEdit(edit) {
-            return "<a href=\""+edit.url+"\">"+edit.title+"<\/a> " + edit.change + " " + edit.text;
+            var out = "<a href=\""+edit.url+"\">"+edit.title+"<\/a> " + edit.change + " " + edit.text
+            if (edit.types) {
+                var typetext = [];
+                for (var i = 0, l = edit.types.length; i < l; i++) {
+                    var type = edit.types[i];
+                    typetext.push(type.text);
+                }
+                out += ' Types: ' + typetext.join(', ');
+            }
+            return out;
         }
         
         </script>

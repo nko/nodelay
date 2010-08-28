@@ -68,9 +68,8 @@ ircclient(function(f) {
 
                     if (! title.match(specialmatcher)) {
                         // attempt to look up in freebase
-                        var freebaseurl = '/en/' + title.replace(/[^\w\d]/g, "_").toLowerCase();
-                        var request = freebase.request('GET', 
-                                    '/experimental/topic/basic?id=' + freebaseurl,
+                        var freebaseurl = '/experimental/topic/basic?id=/en/' + title.replace(/[^\w\d]/g, "_").toLowerCase();
+                        var request = freebase.request('GET', freebaseurl,
                                     {'host': 'www.freebase.com'});
                         request.end();
                         request.on('response', function (response) {
@@ -80,7 +79,15 @@ ircclient(function(f) {
                                 result += chunk;
                             });
                             response.on('end', function () {
-                                returnobj.freebase = JSON.parse(result);
+                                var freebase = JSON.parse(result);
+                                for (var id in freebase) {
+                                    var responseobj = freebase[id];
+                                    if (responseobj.status === '200 OK') {
+                                        returnobj.freebase = freebaseurl;
+                                        returnobj.types = responseobj.result.type;
+                                    }
+                                }
+
                                 //console.log('parsing: ' + freebaseurl + ' for chunk ' + result)
                                 websocket.broadcast(JSON.stringify(returnobj))
                                 //console.log(JSON.stringify(returnobj) + '\n');
