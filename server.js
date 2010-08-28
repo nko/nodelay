@@ -2,7 +2,7 @@ var sys = require('sys'),
     http = require('http'),
     stat = require('./lib/node-static'),
     ws = require('./lib/ws'),
-    ircclient = require('./lib/Jerk/lib/jerk')
+    ircclient = require('./lib/jerk/lib/jerk')
 
 
 // for serving static files we're using http://github.com/cloudhead/node-static
@@ -26,11 +26,11 @@ http.createServer(function (req, res) {
 
 var websocket = ws.createServer();
 
-//websocket.addListener("connection", function(connection){
+websocket.addListener("connection", function(connection){
 //  connection.addListener("message", function(msg){
 //    websocket.send(msg);
 //  });
-//});
+});
 
 websocket.listen(8080);
 
@@ -47,6 +47,7 @@ ircclient(function(f) {
     f.watch_for(/.*/, function(message) {
         if (message.user === 'rc') {
             var rawtext = String(message.text);
+            //sys.print(rawtext + '\n');
             // handle edits
             if (irclinematcher.test(rawtext)) {
                 var stuff = rawtext.match(irclinematcher);
