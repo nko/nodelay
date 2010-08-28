@@ -2,7 +2,8 @@ var sys = require('sys'),
     http = require('http'),
     stat = require('./lib/node-static'),
     ws = require('./lib/ws'),
-    ircclient = require('./lib/jerk/lib/jerk')
+    ircclient = require('./lib/jerk/lib/jerk'),
+    colors = require('./colors');
 
 
 // for serving static files we're using http://github.com/cloudhead/node-static
@@ -37,7 +38,7 @@ websocket.listen(8080);
 
 var ircoptions = {
     server: 'irc.wikimedia.org'
-    ,nick: 'bloombot'
+    ,nick: 'bloombot-'+(new Date().getTime()).toString(16)
     ,channels: ['#en.wikipedia']
 }
 
@@ -46,9 +47,7 @@ var irclinematcher = /.*\[\[(.*)\]\].*(http\S+).*\((.+)\) (.*)/
 ircclient(function(f) {
     f.watch_for(/.*/, function(message) {
         if (message.user === 'rc') {
-            var rawtext = String(message.text);
-            websocket.broadcast(rawtext);
-            //sys.print(rawtext + '\n');
+            var rawtext = colors.removeFormattingAndColors(String(message.text));
             // handle edits
             if (irclinematcher.test(rawtext)) {
                 var stuff = rawtext.match(irclinematcher);
