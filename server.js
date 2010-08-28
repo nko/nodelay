@@ -11,7 +11,6 @@ var net = require('net'),
 var fileServer = new stat.Server()
     
 http.createServer(function (req, res) {
-
     // later we'll inspect req.url to see whether
     // this path should be more interesting
     // for now we'll just delegate everything to our fileServer:
@@ -22,27 +21,15 @@ http.createServer(function (req, res) {
     req.addListener('end', function() {
         fileServer.serve(req,res)
     })
-    
-}).listen(80)
+}).listen(80);
 
-var websocket = ws.createServer()
+// for pushing updates out to the clients
+var websocket = ws.createServer().listen(8080);
 
-websocket.addListener("connection", function(connection){
-  connection.addListener("message", function(msg){
-    websocket.broadcast(msg)
-  })
-})
-
-websocket.listen(8080)
-
-var ircoptions = {
-    server: 'irc.wikimedia.org'
-    ,nick: 'bloombot-'+(new Date().getTime()).toString(16)
-    ,channels: ['#en.wikipedia']
-}
-
+// Parse out chunks from the wikipedia IRC channel
 var irclinematcher = /.*\[\[(.*)\]\].*(http\S+).*\((.+)\) (.*)/
 
+// HTTP client for freebase lookups
 var freebaseclient = http.createClient(80, 'www.freebase.com')
 
 // Match wikipedia titles that are 'special', e.g. 'User talk:...'
@@ -81,6 +68,13 @@ var lookInFreebase = function(title, returnobj) {
             //console.log(JSON.stringify(returnobj) + '\n')
         })
     })
+}
+
+// Connect to wikipedia's IRC server, parse responses, dump as JSON
+var ircoptions = {
+    server: 'irc.wikimedia.org'
+    ,nick: 'bloombot-'+(new Date().getTime()).toString(16)
+    ,channels: ['#en.wikipedia']
 }
 
 ircclient(function(f) {
