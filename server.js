@@ -6,6 +6,6 @@ http.createServer(function (req, res) {
         res.writeHead(200, {'Content-Type': 'text/plain'});
         res.end('Hello World\n');
     }, 2000);
-}).listen(8000);
+}).listen(80);
             
-sys.puts('Server running at http://127.0.0.1:8000/');
+sys.puts('Server running!\n');
