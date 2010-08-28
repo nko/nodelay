@@ -1,11 +1,12 @@
 var sys = require('sys'),
     http = require('http'),
-    static = require('./lib/node-static'),
-    ws = require('./lib/ws');
+    stat = require('./lib/node-static'),
+    ws = require('./lib/ws'),
+    ircclient = require('./lib/Jerk/lib/jerk')
 
 
 // for serving static files we're using http://github.com/cloudhead/node-static
-var fileServer = new static.Server();
+var fileServer = new stat.Server();
     
 http.createServer(function (req, res) {
 
@@ -33,8 +34,6 @@ var websocket = ws.createServer();
 
 websocket.listen(8080);
 
-var ircclient = require('./lib/Jerk/lib/jerk')
-var sys = require ('sys')
 
 var ircoptions = {
     server: 'irc.wikimedia.org'
