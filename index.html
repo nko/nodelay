@@ -12,17 +12,52 @@
         WEB_SOCKET_SWF_LOCATION = "web-socket-js/WebSocketMain.swf";
         WEB_SOCKET_DEBUG = true;
         
+        var url, message, status;
+        
+        var minRetryWait = 5000,
+            retryWait = minRetryWait, 
+            maxRetryWait = 60000;
+        
         window.onload = function() {
 
-            var url = "ws://"+document.location.host+":8080";
+            url = "ws://"+document.location.host+":8080";
             
-            // console.log(url);
+            messages = document.getElementById('messages');
+            status = document.getElementById('status');
             
-            var messages = document.getElementById('messages');
+            status.innerHTML = "Connecting...";
             
             var ws = new WebSocket(url);
+            setUpEvents(ws);
+            
+        }
+        
+        function setUpEvents(ws) {
+        
+            ws.onclose = function() {
+                status.innerHTML = "WebSocket closed, retrying in " + Math.round(retryWait/1000) + " seconds!";                
+                setTimeout(function() {
+                    status.innerHTML = "Reconnecting...";                
+                    var retryWs = new WebSocket(url);
+                    setUpEvents(retryWs);
+                }, retryWait);
+                retryWait *= 2;
+                retryWait = Math.min(maxRetryWait, retryWait);
+            };
+
+            ws.onerror = function() {
+                status.innerHTML = "Error with WebSocket, try refreshing?";
+            };
+
+            ws.onopen = function() {
+                status.innerHTML = "Connected! Waiting for messages...";
+                retryWait = minRetryWait;
+            };
             
             ws.onmessage = function(evt) {
+                if (status.innerHTML == "Connected! Waiting for messages...") {
+                    status.innerHTML = "";
+                }            
                 var li = document.createElement('li');
                 li.innerHTML = formatEdit(JSON.parse(evt.data));
                 messages.appendChild(li);
@@ -74,6 +109,7 @@
     <body>
         <h1>Nodelay!</h1>
         <p>This page shows recent edits to the English language wikipedia, <em>right now</em>.</p>
+        <p id="status"></p>
         <ul id="messages">
         </ul>
         <img id="doggy" src="images/nodelayKnockout.jpg" align="right">
