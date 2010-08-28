@@ -24,7 +24,8 @@ http.createServer(function (req, res) {
 }).listen(80);
 
 // for pushing updates out to the clients
-var websocket = ws.createServer().listen(8080);
+var websocket = ws.createServer();
+websocket.listen(8080);
 
 // Parse out chunks from the wikipedia IRC channel
 var irclinematcher = /.*\[\[(.*)\]\].*(http\S+).*\((.+)\) (.*)/
