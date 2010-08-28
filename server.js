@@ -25,13 +25,44 @@ http.createServer(function (req, res) {
 
 var websocket = ws.createServer();
 
-websocket.addListener("connection", function(connection){
-  connection.addListener("message", function(msg){
-    websocket.send(msg);
-  });
-});
+//websocket.addListener("connection", function(connection){
+//  connection.addListener("message", function(msg){
+//    websocket.send(msg);
+//  });
+//});
 
 websocket.listen(8080);
+
+var ircclient = require('./lib/Jerk/lib/jerk')
+var sys = require ('sys')
+
+var ircoptions = {
+    server: 'irc.wikimedia.org'
+    ,nick: 'bloombot'
+    ,channels: ['#en.wikipedia']
+}
+
+var irclinematcher = /.*\[\[(.*)\]\].*(http\S+).*\((.+)\) (.*)/
+
+ircclient(function(f) {
+    f.watch_for(/.*/, function(message) {
+        if (message.user === 'rc') {
+            var rawtext = String(message.text);
+            // handle edits
+            if (irclinematcher.test(rawtext)) {
+                var stuff = rawtext.match(irclinematcher);
+                if (stuff.length > 1) {
+                    var returnobj = {title: stuff[1],
+                                     url: stuff[2],
+                                     change: stuff[3],
+                                     text: stuff[4]}
+                    websocket.send(JSON.stringify(returnobj))
+                    //sys.print(JSON.stringify(returnobj) + '\n');
+                }
+            }
+        }
+    })
+}).connect(ircoptions);
 
 
 sys.puts('Server running!\n');
