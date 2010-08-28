@@ -5,14 +5,16 @@
         <script type="text/javascript">
         
         window.onload = function() {
+
+            var url = "wss://"+document.location.host+":8080";
             
-            var ws = new WebSocket("wss://"+document.location.host+":8080");
+            console.log(url);
+            
+            var ws = new WebSocket(url);
             
             ws.onmessage = function(evt) {
                 console.log("websocket says: " + evt.data);
             }
-            
-            ws.send("something");
             
         }
         
