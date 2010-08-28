@@ -26,11 +26,11 @@ http.createServer(function (req, res) {
 
 var websocket = ws.createServer();
 
-//websocket.addListener("connection", function(connection){
-//  connection.addListener("message", function(msg){
-//    websocket.send(msg);
-//  });
-//});
+websocket.addListener("connection", function(connection){
+  connection.addListener("message", function(msg){
+    websocket.broadcast(msg);
+  });
+});
 
 websocket.listen(8080);
 
@@ -47,6 +47,7 @@ ircclient(function(f) {
     f.watch_for(/.*/, function(message) {
         if (message.user === 'rc') {
             var rawtext = String(message.text);
+            websocket.broadcast(rawtext);
             //sys.print(rawtext + '\n');
             // handle edits
             if (irclinematcher.test(rawtext)) {
@@ -56,7 +57,7 @@ ircclient(function(f) {
                                      url: stuff[2],
                                      change: stuff[3],
                                      text: stuff[4]}
-                    websocket.write(JSON.stringify(returnobj))
+                    websocket.broadcast(JSON.stringify(returnobj))
                     //sys.print(JSON.stringify(returnobj) + '\n');
                 }
             }
