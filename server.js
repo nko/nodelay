@@ -26,11 +26,11 @@ http.createServer(function (req, res) {
 
 var websocket = ws.createServer();
 
-websocket.addListener("connection", function(connection){
+//websocket.addListener("connection", function(connection){
 //  connection.addListener("message", function(msg){
 //    websocket.send(msg);
 //  });
-});
+//});
 
 websocket.listen(8080);
 
@@ -56,7 +56,7 @@ ircclient(function(f) {
                                      url: stuff[2],
                                      change: stuff[3],
                                      text: stuff[4]}
-                    websocket.send(JSON.stringify(returnobj))
+                    websocket.write(JSON.stringify(returnobj))
                     //sys.print(JSON.stringify(returnobj) + '\n');
                 }
             }
