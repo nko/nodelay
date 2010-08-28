@@ -2,6 +2,21 @@
 <html>
     <head>
         <title>Nodelay</title>
+        <script type="text/javascript">
+        
+        window.onload = function() {
+            
+            var ws = new WebSocket("wss://"+document.location.host+":8080");
+            
+            ws.onmessage = function(evt) {
+                console.log("websocket says: " + evt.data);
+            }
+            
+            ws.send("something");
+            
+        }
+        
+        </script>
     </head>
     <body>
         <h1>Nodelay!</h1>
