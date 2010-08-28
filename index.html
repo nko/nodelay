@@ -2,7 +2,15 @@
 <html>
     <head>
         <title>Nodelay</title>
+        <!-- these three files are for Flash websocket support -->
+        <script type="text/javascript" src="web-socket-js/swfobject.js"></script>
+        <script type="text/javascript" src="web-socket-js/FABridge.js"></script>
+        <script type="text/javascript" src="web-socket-js/web_socket.js"></script>        
         <script type="text/javascript">
+
+        // these globals are for the Flash WebSocket implementation
+        WEB_SOCKET_SWF_LOCATION = "web-socket-js/WebSocketMain.swf";
+        WEB_SOCKET_DEBUG = false;
         
         window.onload = function() {
 
