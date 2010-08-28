@@ -16,7 +16,7 @@
             
             ws.onmessage = function(evt) {
                 var li = document.createElement('li');
-                li.innerHTML = evt.data;
+                li.innerHTML = formatEdit(JSON.parse(evt.data));
                 messages.appendChild(li);
                 if (messages.children.length > 20) {
                     messages.removeChild(messages.firstChild);
@@ -25,13 +25,42 @@
             
         }
         
+        function formatEdit(edit) {
+            return "<a href=\""+edit.url+"\">"+edit.title+"<\/a> " + edit.change + " " + edit.text;
+        }
+        
         </script>
+        <style type="text/css">
+            body {
+                background: #444;
+                color: white;
+                margin: 20px;
+                font: 14px/1.2 Helvetica, sans-serif;
+            }
+            a {
+                color: yellow;
+            }
+            img#doggy {
+                margin-left: 10px;
+                margin-bottom: 20px;
+                border-right: 1px solid white;
+                border-bottom: 1px solid white;
+            }
+            h1, h2 {
+                color: #00ff99;
+                text-shadow: 3px 3px 8px #000;
+            }
+        </style>
     </head>
     <body>
         <h1>Nodelay!</h1>
-        <a href="http://nodeknockout.com/teams/nodelay" target="nko" title="Help me win Node.js KO!"><img style="position: fixed; top: 5px; right: 5px; border: 0px;" src="http://nodeknockout.com/images/voteko.png" alt="Help me win Node.js KO!" /></a>
+        <p>This page shows recent edits to the English language wikipedia, <em>right now</em>.</p>
         <ul id="messages">
         </ul>
-        <img src="images/nodelayKnockout.jpg">
+        <img id="doggy" src="images/nodelayKnockout.jpg" align="right">
+        <h2>What / Why / How?</h2>
+        <p>You're looking at team Nodelay's entry into <a href="http://nodeknockout.com/">Node Knockout</a>, a 48hr programming contest to explore <a href="http://nodejs.org/">node.js</a>.</p>
+        <p>We're using <a href="http://github.com/gf3/Jerk/">Jerk</a>, <a href="http://github.com/miksago/node-websocket-server">node-websocket-server</a> and <a href="http://github.com/cloudhead/node-static">node-static</a> so far. Data is streaming from Wikipedia's public <a href="http://meta.wikimedia.org/wiki/IRC_Channels#Recent_changes">IRC feed of recent changes</a>. We borrowed a bit of <a href="http://www.jibble.org/pircbot.php">Pircbot</a> to strip formatting information.</p>
+        <a href="http://nodeknockout.com/teams/nodelay" target="nko" title="Help me win Node.js KO!"><img style="position: fixed; top: 5px; right: 5px; border: 0px;" src="http://nodeknockout.com/images/voteko.png" alt="Help me win Node.js KO!" /></a>
     </body>
 </html>
