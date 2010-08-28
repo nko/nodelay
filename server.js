@@ -27,17 +27,7 @@ http.createServer(function (req, res) {
 }).listen(80);
 
 
-
-var websocket = ws.createServer();
-
-websocket.addListener("connection", function(connection){
-  connection.addListener("message", function(msg){
-    websocket.broadcast(msg);
-  });
-});
-
-websocket.listen(8080);
-
+var websocket = ws.createServer().listen(8080);
 
 var ircoptions = {
     server: 'irc.wikimedia.org'
