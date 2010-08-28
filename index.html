@@ -2,13 +2,21 @@
 <html>
     <head>
         <title>Nodelay</title>
+        <!-- these three files are for Flash websocket support -->
+        <script type="text/javascript" src="web-socket-js/swfobject.js"></script>
+        <script type="text/javascript" src="web-socket-js/FABridge.js"></script>
+        <script type="text/javascript" src="web-socket-js/web_socket.js"></script>        
         <script type="text/javascript">
+
+        // these globals are for the Flash WebSocket implementation
+        WEB_SOCKET_SWF_LOCATION = "web-socket-js/WebSocketMain.swf";
+        WEB_SOCKET_DEBUG = true;
         
         window.onload = function() {
 
             var url = "ws://"+document.location.host+":8080";
             
-            console.log(url);
+            // console.log(url);
             
             var messages = document.getElementById('messages');
             
@@ -22,6 +30,8 @@
                     messages.removeChild(messages.firstChild);
                 }
             }
+            
+            // TODO: let's try reconnecting if the socket closes or hangs?
             
         }
         
@@ -60,7 +70,7 @@
         <img id="doggy" src="images/nodelayKnockout.jpg" align="right">
         <h2>What / Why / How?</h2>
         <p>You're looking at team Nodelay's entry into <a href="http://nodeknockout.com/">Node Knockout</a>, a 48hr programming contest to explore <a href="http://nodejs.org/">node.js</a>.</p>
-        <p>We're using <a href="http://github.com/gf3/Jerk/">Jerk</a>, <a href="http://github.com/miksago/node-websocket-server">node-websocket-server</a> and <a href="http://github.com/cloudhead/node-static">node-static</a> so far. Data is streaming from Wikipedia's public <a href="http://meta.wikimedia.org/wiki/IRC_Channels#Recent_changes">IRC feed of recent changes</a>. We borrowed a bit of <a href="http://www.jibble.org/pircbot.php">Pircbot</a> to strip formatting information.</p>
+        <p>We're using <a href="http://github.com/gf3/Jerk/">Jerk</a>, <a href="http://github.com/miksago/node-websocket-server">node-websocket-server</a> and <a href="http://github.com/cloudhead/node-static">node-static</a> so far. Data is streaming from Wikipedia's public <a href="http://meta.wikimedia.org/wiki/IRC_Channels#Recent_changes">IRC feed of recent changes</a>. We borrowed a bit of <a href="http://www.jibble.org/pircbot.php">Pircbot</a> to strip formatting information. WebSockets seem to be working in Firefox thanks to a bit of Flash glue from <a href="http://github.com/gimite/web-socket-js/">web-socket-js</a> and a good old fashioned <a href="http://github.com/waywardmonkeys/netty-flash-crossdomain-policy-server/blob/master/sample_flash_policy.xml">socket policy file</a> on port 843.</p>
         <a href="http://nodeknockout.com/teams/nodelay" target="nko" title="Help me win Node.js KO!"><img style="position: fixed; top: 5px; right: 5px; border: 0px;" src="http://nodeknockout.com/images/voteko.png" alt="Help me win Node.js KO!" /></a>
     </body>
 </html>
