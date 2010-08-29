@@ -85,7 +85,7 @@
             if (edit.metadata) {
                 for (var pageid in edit.metadata.pages) {
                     var page = edit.metadata.pages[pageid];
-                    out += '. Modified: ' + page.touched + ', Edit counter: ' + page.counter + ', Size: ' + page.length;
+                    out += '. Modified: ' + page.touched + ', Views: ' + page.counter + ', Size: ' + page.length;
                 }
             }
             return out;
@@ -124,7 +124,7 @@
         <h2>What / Why / How?</h2>
         <p>You're looking at team Nodelay's entry into <a href="http://nodeknockout.com/">Node Knockout</a>, a 48hr programming contest to explore <a href="http://nodejs.org/">node.js</a>.</p>
         <p>So far we're using <a href="http://github.com/gf3/Jerk/">Jerk</a>, <a href="http://github.com/miksago/node-websocket-server">node-websocket-server</a> <a href="http://github.com/cloudhead/node-static">node-static</a> and <a href="http://howtonode.org/step-of-conductor">Step</a> to help parallelize HTTP requests. We borrowed a bit of <a href="http://www.jibble.org/pircbot.php">Pircbot</a> to strip formatting information. WebSockets seem to be working in Firefox thanks to a bit of Flash glue from <a href="http://github.com/gimite/web-socket-js/">web-socket-js</a> and a good old fashioned <a href="http://github.com/waywardmonkeys/netty-flash-crossdomain-policy-server/blob/master/sample_flash_policy.xml">socket policy file</a> on port 843.</p>
-        <p>We're listening to the English <a href="http://meta.wikimedia.org/wiki/IRC_Channels#Recent_changes">Wikipedia IRC server</a> for update notifications.  For each update, we request the page edit metadata using the <a href="http://www.mediawiki.org/wiki/API">Wikipedia APIs</a> and load additional semantic category data from <a href="http://www.freebase.com/docs/data">Metaweb's Freebase database</a>.  Finally, we return an annotated JSON object to the browser using the <a href="http://dev.w3.org/html5/websockets/">HTML5 Web Socket APIs</a>. Mashup-tastic!</p>
+        <p>We're listening to the English <a href="http://meta.wikimedia.org/wiki/IRC_Channels#Recent_changes">Wikipedia IRC server</a> for update notifications.  For each update, we request the page edit metadata using the <a href="http://www.mediawiki.org/wiki/API">Wikipedia APIs</a> and load additional semantic category data from <a href="http://www.freebase.com/docs/data">Metaweb's Freebase</a>.  Finally, we return an annotated JSON object to the browser using the <a href="http://dev.w3.org/html5/websockets/">HTML5 Web Socket APIs</a>. Mashup-tastic!</p>
         <a href="http://nodeknockout.com/teams/nodelay" target="nko" title="Help me win Node.js KO!"><img style="position: fixed; top: 5px; right: 5px; border: 0px;" src="http://nodeknockout.com/images/voteko.png" alt="Help me win Node.js KO!" /></a>
     </body>
 </html>
