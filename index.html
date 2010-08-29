@@ -2,6 +2,7 @@
 <html>
     <head>
         <title>Nodelay</title>
+        <script type="text/javascript" src="utils.js"></script>
         <script type="text/javascript" src="protovis/protovis-r3.2.js"></script>
         <!-- these three files are for Flash websocket support -->
         <script type="text/javascript" src="web-socket-js/swfobject.js"></script>
@@ -20,18 +21,37 @@
             maxRetryWait = 60000;
         
         window.onload = function() {
-
             url = "ws://"+document.location.host+":8080";
             
             messageel = document.getElementById('messages');
             statusel = document.getElementById('status');
             statusel.innerHTML = "Connecting...";
             
-            var ws = new WebSocket(url);
-            setUpEvents(ws);
+            if (window.WebSocket) {
+                var ws = new WebSocket(url);
+            }
+            if (ws) {
+                setUpEvents(ws);
+            } else {
+                statusel.innerHTML = "";                
+                startPolling();
+            }
          
             initVis();
          
+        }
+
+        // Start polling for JS when WebSocket and Flash aren't available
+        function startPolling() {
+            var pollurl = "http://"+document.location.host+'/poll' + (Math.random() * 10000);
+            //console.log('startPolling', pollurl);
+            var self = this;
+            utils.loadJSLib(pollurl, function() {
+                setTimeout(function() {
+                    //console.log('loaded', pollurl);
+                    self.startPolling();
+                },1)
+            })
         }
         
         function setUpEvents(ws) {
@@ -62,12 +82,6 @@
                 }            
                 var edit = JSON.parse(evt.data);
                 processEdit(edit);                
-                var li = document.createElement('li');
-                li.innerHTML = formatEdit(edit);
-                messageel.appendChild(li);
-                if (messageel.children.length > 20) {
-                    messageel.removeChild(messageel.firstChild);
-                }
             }
             
             // TODO: let's try reconnecting if the socket closes or hangs?
@@ -143,12 +157,20 @@
             t = Math.floor(t);
             return t + " week" + (t == 1 ? '' : 's') + " ago";
         }        
+
         
         var types = [];
         var typeIndex = {};
         var groupNodes = {};
         
         function processEdit(edit) {
+            // Update the HTML
+            var li = document.createElement('li');
+            li.innerHTML = formatEdit(edit);
+            messageel.appendChild(li);
+            if (messageel.children.length > 20) {
+                messageel.removeChild(messageel.firstChild);
+            }
             
             var group = 0,
                 groupNodes = [];
