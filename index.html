@@ -89,7 +89,13 @@
         }
         
         function formatEdit(edit) {
-            var out = "<a target=\"_blank\" href=\""+edit.url+"\">"+edit.title+"<\/a> " + "<span class=\"change\">" + edit.change + "<\/span> <span class=\"comment\">" + edit.text + "<\/span>";
+            // Add wikipedia metadata
+            for (var pageid in edit.metadata.pages) {
+                var page = edit.metadata.pages[pageid];
+                var size = page.length;
+                var time = ' <span class="time">' + relativeDate(parseDate(page.touched)) + '<\/span>'
+            }
+            var out = '<a target="_blank" href="'+edit.url+'">' + edit.title + '<\/a> <span class="change">' + edit.change + '<\/span> ' + size + ' <span class="comment">' + edit.text + '<\/span>' + time;
             // Add types from metaweb
             if (edit.types) {
                 var typetext = [];
@@ -98,13 +104,6 @@
                     typetext.push(type.text);
                 }
                 out += '. Types: ' + typetext.join(', ');
-            }
-            // Add wikipedia metadata
-            if (edit.metadata) {
-                for (var pageid in edit.metadata.pages) {
-                    var page = edit.metadata.pages[pageid];
-                    out += '. Modified: <span class="time">' + relativeDate(parseDate(page.touched)) + '<\/span>, Views: ' + page.counter + ', Size: ' + page.length;
-                }
             }
             var rank = edit.googlerank;
             if (rank != null) {
@@ -407,7 +406,6 @@
             }
             span.change {
                 color: #8ff;
-                font-style: italic;
             }
             span.comment {
                 color: #f8f;
