@@ -191,7 +191,7 @@ function updateVis(edit) {
         userNodes[edit.user] = {
             nodeName: edit.user,
             user: edit.user,
-            group: 0,
+            group: 0, // User Nodes
             nodeIndex: nodes.length,
             lastTouched: Date.now(),
             x: randomX(),
@@ -205,17 +205,12 @@ function updateVis(edit) {
 
     var pos = userNode ? randomOffset(userNode) : randomOuter();
      
-    var group = 1;
-    var prefixes = [ "Talk:", "Category:", "Wikipedia:", "File:", "Template:", "User:", "Portal" ];
+    var group = 1; // normal Articles
+    var prefixes = [ "Talk:", "Category:", "Wikipedia:", "File:", "Template:", "User:", "User talk:", "Portal:" ];
     for (var i = 0; i < prefixes.length; i++) {
         if (edit.title.indexOf(prefixes[i]) == 0) {
-            group = 2 + (2*i);
+            group = 2 + i;
             break;            
-        }
-    }
-    if (group == 1) {
-        if (edit.title.indexOf("User talk:") == 0) {
-            group = 13;
         }
     }
         
@@ -308,7 +303,7 @@ var links = [];
 function initVis() {
 
     var container = document.getElementById('vis'),
-        colors = pv.Colors.category20();
+        colors = pv.Colors.category10();
     
     vis = new pv.Panel()
         .canvas('vis')
