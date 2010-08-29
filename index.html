@@ -76,7 +76,7 @@
         }
         
         function formatEdit(edit) {
-            var out = "<a target=\"_blank\" href=\""+edit.url+"\">"+edit.title+"<\/a> " + "<span class=\"change\">" + edit.change + "<\/span>" + " " + edit.text
+            var out = "<a target=\"_blank\" href=\""+edit.url+"\">"+edit.title+"<\/a> " + "<span class=\"change\">" + edit.change + "<\/span> <span class=\"comment\">" + edit.text + "<\/span>";
             // Add types from metaweb
             if (edit.types) {
                 var typetext = [];
@@ -90,11 +90,57 @@
             if (edit.metadata) {
                 for (var pageid in edit.metadata.pages) {
                     var page = edit.metadata.pages[pageid];
-                    out += '. Modified: ' + page.touched + ', Views: ' + page.counter + ', Size: ' + page.length;
+                    out += '. Modified: <span class="time">' + relativeDate(parseDate(page.touched)) + '<\/span>, Views: ' + page.counter + ', Size: ' + page.length;
                 }
             }
             return out;
         }
+
+        // adapted from http://stackoverflow.com/questions/3085937/safari-js-cannot-parse-yyyy-mm-dd-date-format
+        function parseDate(input, format) {
+            if (!input) return null;
+            format = format || 'yyyy-mm-dd HH:MM:SS'; // default format
+            var parts = input.match(/(\d+)/g), 
+                i = 0, 
+                fmt = {};
+            // extract date-part indexes from the format
+            format.replace(/(yyyy|dd|mm|HH|MM|SS)/g, function(part) { fmt[part] = i++; });
+            return new Date(Date.UTC(parts[fmt['yyyy']], parts[fmt['mm']]-1, parts[fmt['dd']], parts[fmt['HH']], parts[fmt['MM']], parts[fmt['SS']]));
+        }
+        
+        function relativeDate(then) {
+            if(!then) return 'never';
+            then = Math.floor(then.getTime() / 1000);
+            var now = Math.floor(Date.now() / 1000);
+            var t = now - then;
+            if (t <= 1) {
+                return "moments ago";
+            }
+            else if (t < 5) {
+                return Math.round(t) + " seconds ago";
+            }
+            else if (t < 60) {
+                return "about " + Math.round(t/10)*10 + " seconds ago";
+            }
+            t /= 60;
+            if (t < 60) {
+                t = Math.floor(t);
+                return t + " minute" + (t == 1 ? '' : 's') + " ago";
+            }
+            t /= 60;
+            if (t < 24) {
+                t = Math.floor(t);
+                return t + " hour" + (t == 1 ? '' : 's') + " ago";
+            }
+            t /= 24;
+            if (t < 7) {
+                t = Math.floor(t);
+                return t + " day" + (t == 1 ? '' : 's') + " ago";
+            }
+            t /= 7;
+            t = Math.floor(t);
+            return t + " week" + (t == 1 ? '' : 's') + " ago";
+        }        
         
         var types = [];
         var typeIndex = {};
@@ -126,8 +172,7 @@
             }
                         
             // keep nodes to a manageable length, remove oldest one that isn't a type
-            while (nodes.length > 100) {
-                console.log('removing a node (length=' + nodes.length + ')');
+            while (nodes.length > 1000) {
             
                 var sortedNodes = nodes.slice();
                 sortedNodes.sort(function(a,b) {
@@ -136,7 +181,7 @@
                 var dead = sortedNodes[0];
                 // remove this node
                 nodes.splice(dead.nodeIndex, 1);
-                console.log('removed a node (length=' + nodes.length + ')');
+
                 // correct node index:
                 // TODO: this could be smarter with a slice, no?
                 nodes.forEach(function(n,i) {
@@ -165,9 +210,6 @@
                     return true;
                 });
             }
-            
-            console.log('nodes: ' + nodes.length);
-            console.log('links: ' + links.length);
             
             if (force) {
                 force.reset();
@@ -239,7 +281,7 @@
                 color: #00ff99;
                 text-shadow: 3px 3px 8px #000;
                 padding: 2px;
-                margin: 0px;
+                margin: 10px 0px 0px 0px;
             }
             p {
                 padding: 2px;
@@ -274,15 +316,20 @@
                 color: #8ff;
                 font-style: italic;
             }
+            span.comment {
+                color: #f8f;
+            }
+            span.time {
+                color: #8f8;
+            }
         </style>
     </head>
     <body>
         <h1>Nodelay!</h1>
         <p>This page shows recent edits to the English language wikipedia, <em>right now</em>.</p>
-        <p id="status"></p>
-        <div id="vis">
-        </div>
+        <div id="vis"></div>
         <h2>Most Recent 20</h2>
+        <p id="status"></p>
         <ul id="messages">
         </ul>
         <img id="doggy" src="images/nodelayKnockout.jpg" align="right">
