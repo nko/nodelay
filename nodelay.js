@@ -87,7 +87,9 @@ function processEdit(data) {
 
     // Update user count
     usercountel = document.getElementById('updates');
-    var userstring = 'Nodelay has ' + edit.usercount + ' user' + (edit.usercount == 1 ? '!' : 's!');
+    var usercounttext = commaSeparated(edit.usercount) + ' user' + (edit.usercount == 1 ? '' : 's');
+    var editcounttext = commaSeparated(edit.editcount) + ' edit' + (edit.editcount == 1 ? '' : 's');
+    var userstring = 'Nodelay has ' + usercounttext + ' and has served ' + editcounttext + '!';
     usercountel.innerHTML = userstring;
     top.document.title = userstring;
 
@@ -139,6 +141,14 @@ function processEdit(data) {
     }
 }
 
+function commaSeparated(n) {
+    var s = n.toString();
+    for (var i = s.length-3; i >= 1; i -= 3) {
+        s = s.substring(0,i) + "," + s.substring(i,s.length);
+    }
+    return s;
+}
+
 function formatEdit(edit) {
     // Add wikipedia metadata
     for (var pageid in edit.metadata.pages) {
@@ -161,7 +171,7 @@ function formatEdit(edit) {
         // http://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Robot_icon.svg/40px-Robot_icon.svg.png
         user += " <img src=\"images/robot.png\">";
     }
-    out += size + '<span class="change">' + edit.change + '<\/span> <span class="comment">' + edit.text + '<\/span>' + time + user;
+    out += (size ? size : '') + '<span class="change">' + edit.change + '<\/span> <span class="comment">' + edit.text + '<\/span>' + time + user;
     var rank = edit.googlerank;
     if (rank != null) {
         console.log('google rank', rank);
