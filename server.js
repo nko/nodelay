@@ -262,6 +262,7 @@ var loadMetadata = function(returnobj) {
             numEdits++;
             returnobj.usercount = websocket.manager.length + waitingclients.length;
             returnobj.editcount = numEdits;
+            returnobj.uniqueips = uniqueips.length;
             var out = JSON.stringify(returnobj)
             //console.log('finally rendering', JSON.stringify(returnobj));
             websocket.broadcast(out);
@@ -280,8 +281,8 @@ var loadMetadata = function(returnobj) {
 // See: http://meta.wikimedia.org/wiki/Help:Recent_changes#Understanding_Recent_Changes
 var irclinematcher = /^\[\[(.*)\]\] (.?) (http\S+) \* (.*) \* \(([+-]\d+)\) (.*)$/
 
+// Connect to all channels in the languages hash
 var channels = [];
-
 for (var lang in languages) {
     var langcode = languages[lang];
     channels.push('#' + langcode + '.wikipedia');
@@ -303,7 +304,6 @@ return jerk(function(f) {
                                       ,change: matches[5]
                                       ,text: matches[6]
                                       ,languages: languages
-                                      ,source: message.source
                                       ,source: message.source
                                     }
                     loadMetadata(returnobj)

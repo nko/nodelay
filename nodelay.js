@@ -87,7 +87,7 @@ function processEdit(data) {
 
     // Update user count
     usercountel = document.getElementById('updates');
-    var usercounttext = commaSeparated(edit.usercount) + ' user' + (edit.usercount == 1 ? '' : 's');
+    var usercounttext = commaSeparated(edit.usercount) + ' user' + (edit.usercount == 1 ? '' : 's') + ' from ' + commaSeparated(edit.uniqueips) + ' unique address' + (edit.uniqueips == 1 ? '' : 'es');
     var editcounttext = commaSeparated(edit.editcount) + ' edit' + (edit.editcount == 1 ? '' : 's');
     var userstring = 'Nodelay has ' + usercounttext + ' and has served ' + editcounttext + '!';
     usercountel.innerHTML = userstring;
