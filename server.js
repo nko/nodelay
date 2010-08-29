@@ -186,7 +186,7 @@ var loadMetadata = function(title, responseobj) {
             while (waitingclients.length) {
                 var client = waitingclients.shift()
                 // TODO: don't use a direct callback
-                client("processEdit('" + out.replace(/'/g,"\\'") + "')")
+                client("processEdit('" + out.replace(/'/g,"\\'").replace(/"/g,'\\"') + "')")
             }
             waitingclients = [];
         }
