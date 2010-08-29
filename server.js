@@ -49,7 +49,7 @@ var languages = {
     ,'Waray-Waray': 'war'
 }
 
-// TODO: load counters
+// load counters
 
 try {
     var readStream = fs.createReadStream('counters.json', {
@@ -68,6 +68,14 @@ try {
         if (readBuffer.length > 0) {
             var data = JSON.parse(readBuffer);
             numEdits += (data.numEdits || 0)
+            if (data.uniqueips && data.uniqueips.length) {
+                data.uniqueips.forEach(function(ip) {
+                    if (!(ip in uniqueiphash)) {
+                        uniqueiphash[ip] = true;
+                        uniqueips.push(ip);
+                    }
+                })
+            }
         }
         //console.log('triggering save in 10 seconds')
         setTimeout(saveCounters, 10000)
@@ -78,7 +86,11 @@ catch(e) {
 }
 
 function saveCounters() {
-    var toSave = JSON.stringify({ numEdits: numEdits })
+    var toSave = JSON.stringify({ 
+        time: Date.now(),
+        numEdits: numEdits,
+        uniqueips: uniqueips
+    })
     var writeStream = fs.createWriteStream('counters.json', {
         flags: 'w+',
         encoding: 'utf8'
