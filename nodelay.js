@@ -182,85 +182,73 @@ function relativeDate(then) {
 
 ///////////////////// Protovis stuff goes here...
 
-
 var visRunning = true;
-var types = [];
-var typeIndex = {};
-var groupNodes = {};
+var userNodes = {};
 
 function updateVis(edit) {
 
-    var group = 0,
-        groupNodes = [];
-        
-    if (edit.types && edit.types.length > 0) {
-        var x = randomX(),
-            y = randomY();
-        for (var i = 0; i < edit.types.length; i++) {
-            var type = edit.types[i];
-            if (!(type.id in typeIndex) || !(type.id in groupNodes)) {
-                types.push(type.id);
-                typeIndex[type.id] = types.length;
-                // create a node for this type:
-                var groupNode = { 
-                    nodeName: type.text, 
-                    group: types.length, 
-                    type: type.id, 
-                    nodeIndex: nodes.length, 
-                    x: x + Math.random(), 
-                    y: y + Math.random() 
-                };
-                groupNodes[type.id] = groupNode;
-                nodes.push(groupNode);
-            }
-            groupNodes.push(groupNodes[type.id]);
+    if (!(edit.user in userNodes)) {
+        userNodes[edit.user] = {
+            nodeName: edit.user,
+            user: edit.user,
+            group: 0,
+            nodeIndex: nodes.length,
+            lastTouched: Date.now(),
+            x: randomX(),
+            y: randomY() 
         }
-        group = typeIndex[edit.types[0].id];
+        nodes.push(userNodes[edit.user]);
     }
     
-    var pos = groupNodes.length > 0 ? randomOffset(groupNodes[0]) : randomOuter();
+    var userNode = userNodes[edit.user];
+    if (userNode) { userNode.lastTouched = Date.now(); }
+
+    var pos = userNode ? randomOffset(userNode) : randomOuter();
+     
+    var group = 1;
+    var prefixes = [ "Talk:", "Category:", "Wikipedia:", "File:", "Template:", "User:", "Portal" ];
+    for (var i = 0; i < prefixes.length; i++) {
+        if (edit.title.indexOf(prefixes[i]) == 0) {
+            group = 2 + (2*i);
+            break;            
+        }
+    }
+    if (group == 1) {
+        if (edit.title.indexOf("User talk:") == 0) {
+            group = 13;
+        }
+    }
         
     var node = { 
         nodeName: edit.title,
-        group: group,
+        group: group, // TODO: color based on edit type (special, talk, bot, etc)
         nodeIndex: nodes.length,
         lastTouched: Date.now(),
         x: pos.x,
         y: pos.y 
     };
     nodes.push(node)
-    
-    if (groupNodes.length > 0) {
-        for (var i = 0; i < groupNodes.length; i++) {
-            var groupNode = groupNodes[i];
-            groupNode.lastTouched = Date.now();
-            links.push({ source: groupNode.nodeIndex, target: node.nodeIndex, value: 5 });
-        }
-    }
-                
+
+    links.push({ source: userNode.nodeIndex, target: node.nodeIndex, value: 5 });
+
     // keep nodes to a manageable length, remove oldest one that isn't a type
-    while (nodes.length > 150) {
+    while (nodes.length > 100) {
     
         var sortedNodes = nodes.slice();
         sortedNodes.sort(function(a,b) {
             return a.lastTouched - b.lastTouched;
         });
-        var dead = sortedNodes[0];
-        // remove this node
-        nodes.splice(dead.nodeIndex, 1);
-
-        // correct node index:
-        // TODO: this could be smarter with a slice, no?
-        nodes.forEach(function(n,i) {
-            n.nodeIndex = i;
-        });
         
-        // cleanup the groupNodes and types
-        if (dead.type) {
-            // TODO: clean up the 'group' index
-            types.splice(types.indexOf(dead.type),1);
-            delete typeIndex[dead.type];
-            delete groupNodes[dead.type];
+        var dead = sortedNodes[0];
+
+        // remove dead node and correct node indexes:
+        nodes.splice(dead.nodeIndex, 1);
+        for (var i = dead.nodeIndex; i < nodes.length; i++) {
+            nodes[i].nodeIndex = i;
+        };
+        
+        if (dead.user) {
+            delete userNodes[dead.user];
         }
         
         // decrement source and target index and remove invalid links
@@ -320,7 +308,7 @@ var links = [];
 function initVis() {
 
     var container = document.getElementById('vis'),
-        colors = pv.Colors.category10();
+        colors = pv.Colors.category20();
     
     vis = new pv.Panel()
         .canvas('vis')
@@ -338,7 +326,9 @@ function initVis() {
         .chargeConstant(-5)
         .iterations(null); // continuous
     
-    force.link.add(pv.Line);
+    force.link.add(pv.Line)
+        .strokeStyle('white')
+        .lineWidth(0.5);
     
     force.node.add(pv.Dot)
         .size(function(d) { 
@@ -347,13 +337,13 @@ function initVis() {
             return 1.0 + (ageMult*25.0);// + (linkSize); 
         })
         .fillStyle(function(d) { return d.fix ? "brown" : colors(d.group) })
-        .strokeStyle(function(d) { return d.type ? 'white' : null })
+        .strokeStyle(function(d) { return d.user ? 'white' : null })
         .lineWidth(1)
         .title(function(d) { return d.nodeName })
         .event("mousedown", pv.Behavior.drag())
-        .event("drag", force).anchor(function(d) { return d.type ? 'right' : 'left' }).add(pv.Label)
-    .visible(function(d) { return (Date.now() - d.lastTouched) < (d.type ? 5000 : 10000); })
-    .textStyle(function(d) { return d.type ? 'white' : colors(d.group).brighter().brighter() })
+        .event("drag", force).anchor(function(d) { return d.user ? 'right' : 'left' }).add(pv.Label)
+    .visible(function(d) { return (Date.now() - d.lastTouched) < (d.user ? 5000 : 10000); })
+    .textStyle(function(d) { return d.user ? 'white' : colors(d.group).brighter() })
     .text(function(d) { 
         return d.nodeName;
     });
