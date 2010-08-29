@@ -80,8 +80,7 @@
                 if (statusel.innerHTML == "Connected! Waiting for messages...") {
                     statusel.innerHTML = "";
                 }            
-                var edit = JSON.parse(evt.data);
-                processEdit(edit);                
+                processEdit(evt.data);                
             }
             
             // TODO: let's try reconnecting if the socket closes or hangs?
@@ -164,7 +163,9 @@
         var typeIndex = {};
         var groupNodes = {};
         
-        function processEdit(edit) {
+        function processEdit(data) {
+            var edit = JSON.parse(data);
+
             // Update user
             usercountel = document.getElementById('updates');
             var userstring = 'Nodelay has ' + edit.usercount + ' users!'

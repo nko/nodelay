@@ -184,7 +184,8 @@ var loadMetadata = function(title, responseobj) {
             websocket.broadcast(out);
             while (waitingclients.length) {
                 var client = waitingclients.shift()
-                client("processEdit(JSON.parse('" + out.replace(/'/g,"\\'") + "'))")
+                // TODO: don't use a direct callback
+                client("processEdit('" + out.replace(/'/g,"\\'") + "')")
             }
             waitingclients = [];
         }

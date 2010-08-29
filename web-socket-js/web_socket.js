@@ -11,7 +11,7 @@
   if (!console) console = {log: function(){ }, error: function(){ }};
 
   if (!swfobject.hasFlashPlayerVersion("9.0.0")) {
-    console.error("Flash Player is not installed.");
+    //console.error("Flash Player is not installed.");
     return;
   }
   if (location.protocol == "file:") {
