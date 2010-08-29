@@ -145,7 +145,7 @@ function processEdit(json) {
         //console.log('skipping source', edit.source, sourcelang);
         return;
     }
-    console.log(json);
+    //console.log(json);
 
     // Update the list
     var li = document.createElement('li');
