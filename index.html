@@ -107,8 +107,10 @@
                 }
             }
             var rank = edit.googlerank;
-            if (rank == null) rank = 8;
-            out = '<span style="opacity:' + ((10 - rank) / 10) + ';">' + out + '</span>';
+            if (rank != null) {
+                //console.log(rank);
+                out = '<span style="opacity:' + ((10 - rank) / 10) + ';">' + out + '</span>';
+            }
             return out;
         }
 
