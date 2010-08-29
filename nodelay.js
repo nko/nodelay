@@ -97,7 +97,7 @@ function processEdit(data) {
         langel = document.getElementById('languages');
         var langhtml = '';
         for (var desc in edit.languages) {
-            langhtml += '<a href="' + '/language/' + edit.languages[desc] + '">' + desc + '</a> ';
+            langhtml += '<a href="' + '/?language=' + edit.languages[desc] + '">' + desc + '</a> ';
         }
         langel.innerHTML = langhtml;
     }

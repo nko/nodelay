@@ -8,7 +8,7 @@ var net = require('net'),
     colors = require('./colors'),
     Step = require('./lib/step')
 
-var languages = {English: 'en', German: 'dk'}
+var languages = {English: 'en', German: 'de'}
 
 // for serving static files we're using http://github.com/cloudhead/node-static
 var fileServer = new stat.Server()
@@ -41,11 +41,14 @@ http.createServer(function (req, res) {
                 writeResponse(res, newData)
             };
             waitingclients.push(client);
-        } else if (req.url.match(/^\/language/)) {
-            var language = req.url.match(/language\/(\w+)$/)
+        } else if (req.url.match(/\?language=/)) {
+            var language = req.url.match(/\?language=(\w+)$/)
             if (language && language.length > 1) {
-                console.log('found language', language[1])
-                req.url = '/index.html'
+                console.log('found language', '#' + language[1] + '.wikipedia')
+                thejerk.join('#' + language[1] + '.wikipedia');
+                
+                req.url = '/index.html?language=' + language[1]
+                fileServer.serve(req,res)
             } else {
                 writeResponse(res, JSON.stringify(languages))
             }
@@ -246,9 +249,7 @@ var myjerk = jerk(function(f) {
 return myjerk;
 }
 
-var ircs = ircclient('en');
-console.log('ircs', ircs.join);
-ircs.join('de');
+var thejerk = ircclient('en');
 
 // this should allow the Flash websocket to connect to us in Firefox 3.6 and friends
 // I found this example file at http://github.com/waywardmonkeys/netty-flash-crossdomain-policy-server/blob/master/sample_flash_policy.xml
