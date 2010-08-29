@@ -46,8 +46,10 @@ var languages = {
     ,Bulgarian: 'bg' 
     ,Persian: 'fa' 
     ,Slovenian: 'sl' 
-    ,Waray-Waray: 'war'
+    ,'Waray-Waray': 'war'
 }
+
+var numEdits = 0;
 
 // for serving static files we're using http://github.com/cloudhead/node-static
 var fileServer = new stat.Server()
@@ -247,7 +249,9 @@ var loadMetadata = function(returnobj) {
             lookInGoogle(returnobj, this.parallel());
         },
         function renderContent(err) {
+            numEdits++;
             returnobj.usercount = websocket.manager.length + waitingclients.length;
+            returnobj.editcount = numEdits;
             var out = JSON.stringify(returnobj)
             //console.log('finally rendering', JSON.stringify(returnobj));
             websocket.broadcast(out);
