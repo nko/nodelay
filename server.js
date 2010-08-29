@@ -51,19 +51,31 @@ var languages = {
 
 // TODO: load counters
 
-fs.createReadStream('counters.json', {
-    flags: 'r',
-    encoding: 'utf8'
-})
-var readBuffer = ''
-fs.on('data', function(data) {
-    readBuffer += data
-})
-fs.on('end', function() {
-    var data = JSON.parse(readBuffer);
-    numEdits += (data.numEdits || 0)
-    setTimeout(saveCounters, 10000)
-})
+try {
+    var readStream = fs.createReadStream('counters.json', {
+        flags: 'r',
+        encoding: 'utf8'
+    })
+    var readBuffer = ''
+    readStream.on('data', function(data) {
+        console.log('readStream data')
+        console.log('got "' + data + '"')
+        readBuffer += data
+    })
+    readStream.on('end', function() {
+        console.log('readStream end')
+        console.log('got "' + readBuffer + '"')
+        if (readBuffer.length > 0) {
+            var data = JSON.parse(readBuffer);
+            numEdits += (data.numEdits || 0)
+        }
+        console.log('triggering save in 10 seconds')
+        setTimeout(saveCounters, 10000)
+    })
+}
+catch(e) {
+    console.log(e);
+}
 
 function saveCounters() {
     var toSave = JSON.stringify({ numEdits: numEdits })
@@ -71,10 +83,20 @@ function saveCounters() {
         flags: 'w+',
         encoding: 'utf8'
     })
-    writeSteam.on('close' function() {
+    writeStream.on('close', function() {
+        console.log('writeSteam closed');
         setTimeout(saveCounters, 10000)
     });
-    writeStream.end(toSave)
+    console.log('writing "' + toSave + '" and closing');
+    var written = writeStream.write(toSave)
+    if (written) {
+        writeStream.end()
+    }
+    else {
+        writeStream.on('drain', function() {
+            writeStream.end()
+        });
+    }
 }
 
 var uniqueips = [];
