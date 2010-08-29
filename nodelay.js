@@ -25,8 +25,47 @@ window.onload = function() {
         startPolling();
     }
     
+    loadLanguages();
+    
     initVis();
     
+}
+
+function loadLanguages() {
+    
+    var queryurl = document.location.search;
+    
+    var req = new XMLHttpRequest();
+    req.open('GET', '/?language=', true);   
+    req.onreadystatechange = function (aEvt) {  
+        if (req.readyState == 4 && req.status == 200) {  
+            var languages = JSON.parse(req.responseText);  
+            langel = document.getElementById('languages');
+            var currentlang = '';
+            var langcount = 0;
+            if (queryurl.indexOf('language=') == -1) {
+                var langhtml = '<a href="/" class="selected">All</a> ';
+            } else {
+                var langhtml = '<a href="/">All</a> ';
+            }
+            for (var desc in languages) {
+                var langcode = languages[desc];
+                var cssclass = ''
+                if (queryurl.indexOf(langcode) != -1) {
+                    currentlang += (currentlang !== '' ? ' and ' : '') + desc;
+                    cssclass = ' class="selected"'
+                    langcount++;
+                }
+                langhtml += '<a href="' + '/?language=' + langcode + '"' + cssclass + '>' + desc + '</a> ';
+            }
+            langel.innerHTML = langhtml;
+    
+            langel = document.getElementById('lang');
+            langel.innerHTML = (langcount == 1 ? 'the ' : '') + (currentlang || ' all') + ' wikipedia page' + (langcount != 1 ? 's' : '');            
+        }  
+    };  
+    req.send(null);
+
 }
 
 // Start polling for JS when WebSocket and Flash aren't available
@@ -110,7 +149,7 @@ function processEdit(data) {
 
     var queryurl = document.location.search;
     // Update languages table
-    if (__setlanguages == false) {
+    /*if (__setlanguages == false) {
         __setlanguages = true;
         langel = document.getElementById('languages');
         var currentlang = '';
@@ -134,7 +173,7 @@ function processEdit(data) {
 
         langel = document.getElementById('lang');
         langel.innerHTML = (langcount == 1 ? 'the ' : '') + (currentlang || ' all') + ' wikipedia page' + (langcount != 1 ? 's' : '');
-    }
+    }*/
 
     // Filter by language
     var sourcelang = edit.source.substring(1,3);
