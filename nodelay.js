@@ -98,17 +98,19 @@ function processEdit(data) {
         langel = document.getElementById('languages');
         var langhtml = '';
         var currentlang = '';
+        var langcount = 0;
         for (var desc in edit.languages) {
             var langcode = edit.languages[desc];
             langhtml += '<a href="' + '/?language=' + langcode + '">' + desc + '</a> ';
             if (queryurl.indexOf(langcode) != -1) {
                 currentlang += (currentlang !== '' ? ' and ' : '') + desc;
+                langcount++;
             }
         }
         langel.innerHTML = langhtml;
 
         langel = document.getElementById('lang');
-        langel.innerHTML = currentlang || ' all ';
+        langel.innerHTML = (langcount < 2 ? 'the ' : '') + (currentlang || ' all') + ' wikipedia page' + (langcount != 1 ? 's' : '');
     }
 
     // Filter by language
