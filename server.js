@@ -58,23 +58,23 @@ try {
     })
     var readBuffer = ''
     readStream.on('data', function(data) {
-        console.log('readStream data')
-        console.log('got "' + data + '"')
+        //console.log('readStream data')
+        //console.log('got "' + data + '"')
         readBuffer += data
     })
     readStream.on('end', function() {
-        console.log('readStream end')
-        console.log('got "' + readBuffer + '"')
+        //console.log('readStream end')
+        //console.log('got "' + readBuffer + '"')
         if (readBuffer.length > 0) {
             var data = JSON.parse(readBuffer);
             numEdits += (data.numEdits || 0)
         }
-        console.log('triggering save in 10 seconds')
+        //console.log('triggering save in 10 seconds')
         setTimeout(saveCounters, 10000)
     })
 }
 catch(e) {
-    console.log(e);
+    console.log('persistence error' + e);
 }
 
 function saveCounters() {
@@ -84,10 +84,10 @@ function saveCounters() {
         encoding: 'utf8'
     })
     writeStream.on('close', function() {
-        console.log('writeSteam closed');
+        //console.log('writeSteam closed');
         setTimeout(saveCounters, 10000)
     });
-    console.log('writing "' + toSave + '" and closing');
+    //console.log('writing "' + toSave + '" and closing');
     var written = writeStream.write(toSave)
     if (written) {
         writeStream.end()
@@ -102,6 +102,8 @@ function saveCounters() {
 var uniqueips = [];
 var uniqueiphash = {};
 var numEdits = 0;
+
+var categorycounter = {};
 
 // for serving static files we're using http://github.com/cloudhead/node-static
 var fileServer = new stat.Server()
@@ -167,8 +169,7 @@ http.createServer(function (req, res) {
 var websocket = ws.createServer();
 websocket.listen(8080);
 
-var ircclient = function(languagestr) {
-    var lang = languagestr
+var ircclient = function() {
 // HTTP client for freebase lookups
 var freebaseclient = http.createClient(80, 'www.freebase.com')
 
@@ -178,7 +179,9 @@ var lookInFreebase = function(returnobj, callback) {
     // attempt to look up in freebase
     title = title.replace(/ \([^\)]+\)/, '');
     title = title.replace(/[^\w\d]/g, "_").toLowerCase()
+    var lang = returnobj.source.substring(1,3);
     var url = '/experimental/topic/basic?id=/' + lang + '/' + title
+    //console.log('lookInFreebase', url, returnobj.source);
 
     var request = freebaseclient.request('GET', url, {'host': 'www.freebase.com','user-agent': 'nodelay'})
     request.end()
@@ -202,6 +205,16 @@ var lookInFreebase = function(returnobj, callback) {
                     returnobj.freebase = url
                     if (responseobj.result.type.length) {
                         returnobj.types = responseobj.result.type
+                        // Update category counter
+                        for (var i in returnobj.types) {
+                            var type = returnobj.types[i];
+                            if (categorycounter[type.id] == null) {
+                                categorycounter[type.id] = 1;
+                            } else {
+                                categorycounter[type.id]++;
+                            }
+                            //console.log('found type', JSON.stringify(categorycounter));
+                        }
                     }
                 }
             }
@@ -313,6 +326,7 @@ var loadMetadata = function(returnobj) {
             returnobj.usercount = websocket.manager.length + waitingclients.length;
             returnobj.editcount = numEdits;
             returnobj.uniqueips = uniqueips.length;
+            returnobj.categorycounter = categorycounter;
             var out = JSON.stringify(returnobj)
             //console.log('finally rendering', JSON.stringify(returnobj));
             websocket.broadcast(out);

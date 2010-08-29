@@ -29,31 +29,33 @@ window.onload = function() {
     
 }
 
-// Start polling for JS when WebSocket and Flash aren't available
+// Receive data from a poll
 function receivePoll(json) {
     processEdit(json);
+    polling = false;
+    //console.log('loaded', pollurl);
+    startPolling();
 }
 
+// Start polling for JS when WebSocket and Flash aren't available
 var polling = false;
+var timeoutid;
 function startPolling() {
+    if (polling) return;
     polling = true;
     var pollurl = "http://"+document.location.host+'/poll' + (Math.random() * 10000);
     //console.log('startPolling', pollurl);
     var self = this;
-    setTimeout(function() {
-        // check timeout, and start polling again
+    clearTimeout(timeoutid);
+    timeoutid = setTimeout(function() {
+        // if we get here, start polling again if needed
         if (polling) {
-            self.startPolling();
+            polling = false;
+            startPolling();
         }
     },60000)
 
-    utils.loadJSLib(pollurl, function() {
-        setTimeout(function() {
-            polling = false;
-            //console.log('loaded', pollurl);
-            self.startPolling();
-        },1)
-    })
+    utils.loadJSLib(pollurl);
 }
 
 function setUpEvents(ws) {
@@ -91,13 +93,14 @@ function setUpEvents(ws) {
 
 var __setlanguages = false;
 
-function processEdit(data) {
+function processEdit(json) {
     try {
-        var edit = JSON.parse(data);
+        var edit = JSON.parse(json);
     } catch (e) {
-        window.console && console.error && console.error('Failed to parse: ' + e + ' for: ' + data);
+        window.console && console.error && console.error('Failed to parse: ' + e + ' for: ' + json);
         return;
     }
+
 
     // Update user count
     usercountel = document.getElementById('updates');
@@ -142,6 +145,7 @@ function processEdit(data) {
         //console.log('skipping source', edit.source, sourcelang);
         return;
     }
+    console.log(json);
 
     // Update the list
     var li = document.createElement('li');
@@ -189,7 +193,7 @@ function formatEdit(edit) {
     out += (size ? size : '') + '<span class="change">' + edit.change + '<\/span> <span class="comment">' + edit.text + '<\/span>' + time + user;
     var rank = edit.googlerank;
     if (rank != null) {
-        console.log('google rank', rank);
+        //console.log('google rank', rank);
         out = '<span style="opacity:' + ((10 - rank) / 10) + ';">' + out + '</span>';
     }
     return out;
