@@ -87,7 +87,9 @@ function processEdit(data) {
 
     // Update user count
     usercountel = document.getElementById('updates');
-    var userstring = 'Nodelay has ' + edit.usercount + ' user' + (edit.usercount == 1 ? '!' : 's!');
+    var usercounttext = commaSeparated(edit.usercount) + ' user' + (edit.usercount == 1 ? '' : 's');
+    var editcounttext = commaSeparated(edit.editcount) + ' edit' + (edit.editcount == 1 ? '' : 's');
+    var userstring = 'Nodelay has ' + usercounttext + ' and has served ' + editcounttext + '!';
     usercountel.innerHTML = userstring;
     top.document.title = userstring;
 
@@ -137,6 +139,14 @@ function processEdit(data) {
     if (visRunning) {
         updateVis(edit);
     }
+}
+
+function commaSeparated(n) {
+    var s = n.toString();
+    for (var i = s.length-3; i >= 1; i -= 3) {
+        s = s.substring(0,i) + "," + s.substring(i,s.length);
+    }
+    return s;
 }
 
 function formatEdit(edit) {
