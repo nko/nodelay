@@ -24,14 +24,7 @@ p {
     margin: 5px 0px;
 }
 #container {
-   position: relative;
-   width: 100%;
-   height: 400px;
-}
-#vis {
-    position: absolute;
-    left: 0px;
-    top: 0px;
+    position: relative;
     width: 100%;
     height: 400px;
     background: #333;
@@ -42,6 +35,20 @@ p {
     box-shadow:inset 2px 2px 8px #222;
     -moz-box-shadow:inset 2px 2px 8px #222;
     -webkit-box-shadow:inset 2px 2px 8px #222;
+}
+#legend {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 400px;
+}
+#vis {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 400px;
 }
 #stop {
     position: absolute;
