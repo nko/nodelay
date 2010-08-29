@@ -12,16 +12,33 @@ var net = require('net'),
 // for serving static files we're using http://github.com/cloudhead/node-static
 var fileServer = new stat.Server()
     
+
+// Store a list of clients waiting for the next response (for WS fallback)
+var waitingclients = [];
+    
 http.createServer(function (req, res) {
     // later we'll inspect req.url to see whether
     // this path should be more interesting
     // for now we'll just delegate everything to our fileServer:
 
     // do the right thing with the root:
-    if (req.url == '/') req.url = '/index.html'
+    if (req.url === '/') req.url = '/index.html'
 
     req.addListener('end', function() {
-        fileServer.serve(req,res)
+        // handle polling connections
+        if (req.url.indexOf('/poll') != -1) {
+            var client = function(newData) {
+                res.writeHead(200, {
+                    'Content-Length': newData.length,
+                    'Content-Type': 'text/javascript'
+                });
+                res.write(newData, 'utf8');
+                res.end();
+            };
+            waitingclients.push(client);
+        } else {
+            fileServer.serve(req,res)
+        }
     })
 }).listen(80);
 
@@ -162,7 +179,13 @@ var loadMetadata = function(title, responseobj) {
         },
         function renderContent(err) {
             //console.log('finally rendering', JSON.stringify(responseobj));
-            websocket.broadcast(JSON.stringify(responseobj))
+            var out = JSON.stringify(responseobj)
+            websocket.broadcast(out);
+            while (waitingclients.length) {
+                var client = waitingclients.shift()
+                client("processEdit(JSON.parse('" + out.replace(/'/g,"\\'") + "'))")
+            }
+            waitingclients = [];
         }
     );
 }
