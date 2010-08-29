@@ -270,7 +270,7 @@ var loadMetadata = function(returnobj) {
             while (waitingclients.length) {
                 var client = waitingclients.shift()
                 // TODO: don't use a direct callback
-                client("processEdit('" + out.replace(/'/g,"\\'").replace(/"/g,'\\"') + "')")
+                client("receivePoll('" + out.replace(/'/g,"\\'").replace(/"/g,'\\"') + "')")
             }
             waitingclients = [];
         }

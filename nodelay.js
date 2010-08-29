@@ -30,12 +30,26 @@ window.onload = function() {
 }
 
 // Start polling for JS when WebSocket and Flash aren't available
+function receivePoll(json) {
+    processEdit(json);
+}
+
+var polling = false;
 function startPolling() {
+    polling = true;
     var pollurl = "http://"+document.location.host+'/poll' + (Math.random() * 10000);
     //console.log('startPolling', pollurl);
     var self = this;
+    setTimeout(function() {
+        // check timeout, and start polling again
+        if (polling) {
+            self.startPolling();
+        }
+    },60000)
+
     utils.loadJSLib(pollurl, function() {
         setTimeout(function() {
+            polling = false;
             //console.log('loaded', pollurl);
             self.startPolling();
         },1)
