@@ -2,6 +2,7 @@
 <html>
     <head>
         <title>Nodelay</title>
+        <script type="text/javascript" src="protovis/protovis-r3.2.js"></script>
         <!-- these three files are for Flash websocket support -->
         <script type="text/javascript" src="web-socket-js/swfobject.js"></script>
         <script type="text/javascript" src="web-socket-js/FABridge.js"></script>
@@ -29,7 +30,9 @@
             
             var ws = new WebSocket(url);
             setUpEvents(ws);
-            
+         
+            initVis();
+         
         }
         
         function setUpEvents(ws) {
@@ -58,8 +61,10 @@
                 if (status.innerHTML == "Connected! Waiting for messages...") {
                     status.innerHTML = "";
                 }            
+                var edit = JSON.parse(evt.data);
+                processEdit(edit);                
                 var li = document.createElement('li');
-                li.innerHTML = formatEdit(JSON.parse(evt.data));
+                li.innerHTML = formatEdit(edit);
                 messages.appendChild(li);
                 if (messages.children.length > 20) {
                     messages.removeChild(messages.firstChild);
@@ -83,6 +88,126 @@
             return out;
         }
         
+        var types = [];
+        var typeIndex = {};
+        var groupNodes = {};
+        
+        function processEdit(edit) {
+            
+            var group = 0,
+                groupNode;
+            if (edit.types && edit.types.length > 0) {
+                if (!(edit.types[0].id in typeIndex)) {
+                    types.push(edit.types[0].id);
+                    typeIndex[edit.types[0].id] = types.length;
+                    // create a node for this type:
+                    groupNode = { nodeName: edit.types[0].text, group: types.length, type: edit.types[0].id, nodeIndex: nodes.length };
+                    groupNodes[edit.types[0].id] = groupNode;
+                    nodes.push(groupNode);
+                }
+                group = typeIndex[edit.types[0].id];
+                groupNode = groupNodes[edit.types[0].id];
+            }
+                        
+            var node = { nodeName: edit.title, group: group, nodeIndex: nodes.length, lastTouched: Date.now() };
+            nodes.push(node)
+            
+            if (groupNode) {
+                groupNode.lastTouched = Date.now();
+                links.push({ source: groupNode.nodeIndex, target: node.nodeIndex, value: 5 });
+            }
+                        
+            // keep nodes to a manageable length, remove oldest one that isn't a type
+            while (nodes.length > 100) {
+                console.log('removing a node (length=' + nodes.length + ')');
+            
+                var sortedNodes = nodes.slice();
+                sortedNodes.sort(function(a,b) {
+                    return a.lastTouched - b.lastTouched;
+                });
+                var dead = sortedNodes[0];
+                // remove this node
+                nodes.splice(dead.nodeIndex, 1);
+                console.log('removed a node (length=' + nodes.length + ')');
+                // correct node index:
+                // TODO: this could be smarter with a slice, no?
+                nodes.forEach(function(n,i) {
+                    n.nodeIndex = i;
+                });
+                
+                // cleanup the groupNodes and types
+                if (dead.type) {
+                    // TODO: clean up the 'group' index
+                    types.splice(types.indexOf(dead.type),1);
+                    delete typeIndex[dead.type];
+                    delete groupNodes[dead.type];
+                }
+                
+                // decrement source and target index and remove invalid links
+                links = links.filter(function(link) {
+                    if (link.source == dead.nodeIndex || link.target == dead.nodeIndex) {
+                        return false;
+                    }
+                    if (link.source > dead.nodeIndex) {
+                        link.source -= 1;
+                    }
+                    if (link.target > dead.nodeIndex) {
+                        link.target -= 1;
+                    }
+                    return true;
+                });
+            }
+            
+            console.log('nodes: ' + nodes.length);
+            console.log('links: ' + links.length);
+            
+            if (force) {
+                force.reset();
+                vis.render();
+            }
+        }
+        
+        var force, vis;
+        var nodes = [];
+        var links = [];
+        
+        function initVis() {
+
+            var container = document.getElementById('vis'),
+                colors = pv.Colors.category10();
+            
+            vis = new pv.Panel()
+                .canvas('vis')
+                .width(function() { return container.offsetWidth })
+                .height(function() { return container.offsetHeight })
+                .fillStyle('rgba(0,0,0,0.01)')
+                .event("mousedown", pv.Behavior.pan())
+                .event("mousewheel", pv.Behavior.zoom());
+            
+            force = vis.add(pv.Layout.Force)
+                .nodes(function() { return nodes })
+                .links(function() { return links })
+                .springConstant(0.2);
+            
+            force.link.add(pv.Line);
+            
+            force.node.add(pv.Dot)
+                .size(function(d) { return Math.sqrt(d.linkDegree * (d.type ? 100 : 10)) /* Math.pow(this.scale, -1.5)*/ })
+                .fillStyle(function(d) { return d.fix ? "brown" : colors(d.group) })
+                .strokeStyle(function(d) { return d.type ? 'white' : this.fillStyle().brighter() })
+                .lineWidth(1)
+                .title(function(d) { return d.nodeName })
+                .event("mousedown", pv.Behavior.drag())
+                .event("drag", force);
+            
+            vis.render();
+            
+            window.onresize = function() {
+                vis.render();
+            }
+        
+        }
+        
         </script>
         <style type="text/css">
             body {
@@ -104,18 +229,32 @@
                 color: #00ff99;
                 text-shadow: 3px 3px 8px #000;
             }
+            #vis {
+                width: 100%;
+                height: 500px;
+                background: #333;
+                border-left: 1px solid #444;
+                border-top: 1px solid #444;
+                border-right: 1px solid #444;
+                border-bottom: 1px solid #444;
+                box-shadow:inset 2px 2px 8px #222;
+                -moz-box-shadow:inset 2px 2px 8px #222;
+                -webkit-box-shadow:inset 2px 2px 8px #222;
+            }
         </style>
     </head>
     <body>
         <h1>Nodelay!</h1>
         <p>This page shows recent edits to the English language wikipedia, <em>right now</em>.</p>
         <p id="status"></p>
+        <div id="vis">
+        </div>
         <ul id="messages">
         </ul>
         <img id="doggy" src="images/nodelayKnockout.jpg" align="right">
         <h2>What / Why / How?</h2>
         <p>You're looking at team Nodelay's entry into <a href="http://nodeknockout.com/">Node Knockout</a>, a 48hr programming contest to explore <a href="http://nodejs.org/">node.js</a>.</p>
-        <p>We're using <a href="http://github.com/gf3/Jerk/">Jerk</a>, <a href="http://github.com/miksago/node-websocket-server">node-websocket-server</a> and <a href="http://github.com/cloudhead/node-static">node-static</a> so far. Data is streaming from Wikipedia's public <a href="http://meta.wikimedia.org/wiki/IRC_Channels#Recent_changes">IRC feed of recent changes</a>. We borrowed a bit of <a href="http://www.jibble.org/pircbot.php">Pircbot</a> to strip formatting information. WebSockets seem to be working in Firefox thanks to a bit of Flash glue from <a href="http://github.com/gimite/web-socket-js/">web-socket-js</a> and a good old fashioned <a href="http://github.com/waywardmonkeys/netty-flash-crossdomain-policy-server/blob/master/sample_flash_policy.xml">socket policy file</a> on port 843.</p>
+        <p>We're using <a href="http://github.com/gf3/Jerk/">Jerk</a>, <a href="http://github.com/miksago/node-websocket-server">node-websocket-server</a> and <a href="http://github.com/cloudhead/node-static">node-static</a> so far. Data is streaming from Wikipedia's public <a href="http://meta.wikimedia.org/wiki/IRC_Channels#Recent_changes">IRC feed of recent changes</a> and augmenting it with types from <a href="http://www.freebase.com/">Freebase</a> if we can find them. We borrowed a bit of <a href="http://www.jibble.org/pircbot.php">Pircbot</a> to strip formatting information. WebSockets seem to be working in Firefox thanks to a bit of Flash glue from <a href="http://github.com/gimite/web-socket-js/">web-socket-js</a> and a good old fashioned <a href="http://github.com/waywardmonkeys/netty-flash-crossdomain-policy-server/blob/master/sample_flash_policy.xml">socket policy file</a> on port 843.</p>
         <a href="http://nodeknockout.com/teams/nodelay" target="nko" title="Help me win Node.js KO!"><img style="position: fixed; top: 5px; right: 5px; border: 0px;" src="http://nodeknockout.com/images/voteko.png" alt="Help me win Node.js KO!" /></a>
     </body>
 </html>
