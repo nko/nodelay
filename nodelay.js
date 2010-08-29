@@ -75,6 +75,33 @@ function setUpEvents(ws) {
     
 }
 
+function processEdit(data) {
+    try {
+        var edit = JSON.parse(data);
+    } catch (e) {
+        window.console && console.error && console.error('Failed to parse: ' + e + ' for: ' + data);
+        return;
+    }
+
+    // Update user
+    usercountel = document.getElementById('updates');
+    var userstring = 'Nodelay has ' + edit.usercount + ' user' + (edit.usercount > 1 ? 's!' : '!');
+    usercountel.innerHTML = userstring;
+    top.document.title = userstring;
+
+    // Update the HTML
+    var li = document.createElement('li');
+    li.innerHTML = formatEdit(edit);
+    messageel.appendChild(li);
+    if (messageel.children.length > 20) {
+        messageel.removeChild(messageel.firstChild);
+    }
+    
+    if (visRunning) {
+        updateVis(edit);
+    }
+}
+
 function formatEdit(edit) {
     // Add wikipedia metadata
     for (var pageid in edit.metadata.pages) {
@@ -152,32 +179,7 @@ function relativeDate(then) {
     return t + " week" + (t == 1 ? '' : 's') + " ago";
 }        
 
-function processEdit(data) {
-    try {
-        var edit = JSON.parse(data);
-    } catch (e) {
-        window.console && console.error && console.error('Failed to parse: ' + e + ' for: ' + data);
-        return;
-    }
-
-    // Update user
-    usercountel = document.getElementById('updates');
-    var userstring = 'Nodelay has ' + edit.usercount + ' user' + (edit.usercount > 1 ? 's!' : '!');
-    usercountel.innerHTML = userstring;
-    top.document.title = userstring;
-
-    // Update the HTML
-    var li = document.createElement('li');
-    li.innerHTML = formatEdit(edit);
-    messageel.appendChild(li);
-    if (messageel.children.length > 20) {
-        messageel.removeChild(messageel.firstChild);
-    }
-    
-    if (visRunning) {
-        updateVis(edit);
-    }
-}
+///////////////////// Protovis stuff goes here...
 
 var visRunning = true;
 var types = [];
