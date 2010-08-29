@@ -212,6 +212,8 @@ function relativeDate(then) {
 
 var visRunning = true;
 var userNodes = {};
+
+// TODO: we'll need to translate these if we want them to work for de, etc.
 var types = [ "User", "Article", "Talk:", "Category:", "Wikipedia:", "File:", "Template:", "User:", "User talk:", "Portal:" ];
 
 function updateVis(edit) {
@@ -351,7 +353,7 @@ function initVis() {
         .iterations(null); // continuous
     
     force.link.add(pv.Line)
-        .strokeStyle('white')
+        .strokeStyle('black')
         .lineWidth(0.5);
     
     force.node.add(pv.Dot)
@@ -376,8 +378,11 @@ function initVis() {
     var reverseTypes = types.slice();
     reverseTypes.reverse();
     
-    // Add the color bars for the color legend
-    vis.add(pv.Dot)
+    var legend = new pv.Panel()
+        .canvas('legend')
+        .width(function() { return container.offsetWidth })
+        .height(function() { return container.offsetHeight })        
+      .add(pv.Dot)
         .data(reverseTypes)
         .bottom(function(d) { return 15 + this.index * 15 })
         .size(15)
@@ -390,10 +395,8 @@ function initVis() {
         .text(function(d) { return d })
         .textStyle(function(d) { return this.index == types.length - 1 ? 'white' : colors(types.length - 1 - this.index).brighter() });
     
-        
+    legend.render();
     vis.render();
-    
-    
     
     var resizeTimer = 0;
     window.onresize = function() {
