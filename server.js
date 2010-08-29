@@ -220,7 +220,7 @@ ircclient(function(f) {
                                       user: matches[4],
                                       change: matches[5],
                                       text: matches[6] }
-                    loadMetadata(title, returnobj);
+                    loadMetadata(title, returnobj)
                 }
             }
         }

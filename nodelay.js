@@ -82,7 +82,7 @@ function formatEdit(edit) {
         var size = page.length;
         var time = ' <span class="time">' + relativeDate(parseDate(page.touched)) + '<\/span>'
     }
-    var out = '<a target="_blank" href="'+edit.url+'">' + edit.title + '<\/a> <span class="change">' + edit.change + '<\/span> ' + size + ' <span class="comment">' + edit.text + '<\/span>' + time;
+    var out = '<a target="_blank" href="'+edit.url+'">' + edit.title + '<\/a> '
     // Add types from metaweb
     if (edit.types) {
         var typetext = [];
@@ -90,8 +90,14 @@ function formatEdit(edit) {
             var type = edit.types[i];
             typetext.push(type.text);
         }
-        out += '. Types: ' + typetext.join(', ');
+        out += ' (' + typetext.join(', ') + ') ';
     }
+    var user = ' by <span class="user">' + edit.user + '<\/span>';
+    if (edit.flags.indexOf('B') >= 0) {
+        // http://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Robot_icon.svg/40px-Robot_icon.svg.png
+        user += " <img src=\"images/robot.png\">";
+    }
+    out += size + '<span class="change">' + edit.change + '<\/span> <span class="comment">' + edit.text + '<\/span>' + time + user;
     var rank = edit.googlerank;
     if (rank != null) {
         //console.log(rank);
