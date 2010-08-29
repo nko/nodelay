@@ -8,12 +8,22 @@ var net = require('net'),
     colors = require('./colors'),
     Step = require('./lib/step')
 
+var languages = {English: 'en', German: 'dk'}
 
 // for serving static files we're using http://github.com/cloudhead/node-static
 var fileServer = new stat.Server()
 
 // Store a list of clients waiting for the next response (for WS fallback)
 var waitingclients = [];
+
+var writeResponse = function(res, str) {
+    res.writeHead(200, {
+        'Content-Length': str.length,
+        'Content-Type': 'text/javascript'
+    });
+    res.write(str, 'utf8');
+    res.end();
+}
     
 http.createServer(function (req, res) {
     // later we'll inspect req.url to see whether
@@ -27,14 +37,11 @@ http.createServer(function (req, res) {
         // handle polling connections
         if (req.url.indexOf('/poll') != -1) {
             var client = function(newData) {
-                res.writeHead(200, {
-                    'Content-Length': newData.length,
-                    'Content-Type': 'text/javascript'
-                });
-                res.write(newData, 'utf8');
-                res.end();
+                writeResponse(res, newData)
             };
             waitingclients.push(client);
+        } else if (req.url.indexOf('/languages') != -1) {
+            writeResponse(res, JSON.stringify(languages))
         } else {
             fileServer.serve(req,res)
         }
@@ -58,7 +65,7 @@ var lookInFreebase = function(returnobj, callback) {
     title = title.replace(/[^\w\d]/g, "_").toLowerCase()
     var url = '/experimental/topic/basic?id=/' + lang + '/' + title
 
-    var request = freebaseclient.request('GET', url, {'host': 'www.freebase.com','user-agent': 'bloomclient'})
+    var request = freebaseclient.request('GET', url, {'host': 'www.freebase.com','user-agent': 'nodelay'})
     request.end()
 
     request.on('response', function (response) {
@@ -143,7 +150,7 @@ var lookInWikipedia = function(returnobj, callback) {
     // attempt to look up in freebase
     var url = '/w/api.php?action=query&prop=info&inprop=protection|talkid&format=json&titles=' + querystring.escape(title)
 
-    var request = wikipediaclient.request('GET', url, {'host': 'en.wikipedia.org', 'user-agent': 'bloomclient'})
+    var request = wikipediaclient.request('GET', url, {'host': 'en.wikipedia.org', 'user-agent': 'nodelay'})
     request.end()
 
     request.on('response', function (response) {
@@ -210,12 +217,12 @@ var myjerk = jerk(function(f) {
                 var matches = rawtext.match(irclinematcher)
                 if (matches.length > 1) {
                     // If we parsed successfully...
-                    var returnobj = { title: matches[1],
-                                      flags: matches[2],
-                                      url: matches[3],
-                                      user: matches[4],
-                                      change: matches[5],
-                                      text: matches[6] }
+                    var returnobj = { title: matches[1]
+                                      ,flags: matches[2]
+                                      ,url: matches[3]
+                                      ,user: matches[4]
+                                      ,change: matches[5]
+                                      ,text: matches[6] }
                     loadMetadata(returnobj)
                 }
             }
@@ -223,7 +230,7 @@ var myjerk = jerk(function(f) {
     })
 }).connect({
     server: 'irc.wikimedia.org'
-    ,nick: 'bloombot-'+(new Date().getTime()).toString(16)
+    ,nick: 'nodelay-'+(new Date().getTime()).toString(16)
     ,channels: ['#' + lang + '.wikipedia']
 })
 return myjerk;
