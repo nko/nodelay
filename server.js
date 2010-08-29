@@ -1,6 +1,7 @@
 var net = require('net'),
     http = require('http'),
     querystring = require('querystring'),
+    fs = require('fs'),
     url = require('url'),
     stat = require('./lib/node-static'),
     ws = require('./lib/ws'),
@@ -8,25 +9,43 @@ var net = require('net'),
     colors = require('./colors'),
     Step = require('./lib/step')
 
+// http://meta.wikimedia.org/wiki/List_of_Wikipedias
 var languages = {
     English: 'en'
     ,German: 'de'
-    ,Arabic: 'ar'
-    ,Finnish: 'fi'
-    ,French: 'fr'
-    ,Italian: 'it'
-// no good?    ,Japanese: 'jp'
-    ,Polish: 'pl'
-    ,Russian: 'ru'
-    ,Greek: 'el'
-    ,Croatian: 'hr'
-    ,Portuguese: 'pt'
-    ,Czech: 'cz'
-    ,Spanish: 'es'
-    ,Danish: 'da'
-    ,Icelandic: 'is'
-    ,Dutch: 'nl'
-    ,Swedish: 'sv'
+    ,French: 'fr' 
+    ,Polish: 'pl' 
+    ,Italian: 'it' 
+    ,Japanese: 'ja' 
+    ,Spanish: 'es' 
+    ,Dutch: 'nl' 
+    ,Portuguese: 'pt' 
+    ,Russian: 'ru' 
+    ,Swedish: 'sv' 
+    ,Chinese: 'zh' 
+    ,Catalan: 'ca' 
+    ,Norwegian: 'no' 
+    ,Finnish: 'fi' 
+    ,Ukrainian: 'uk' 
+    ,Hungarian: 'hu' 
+    ,Czech: 'cs' 
+    ,Romanian: 'ro' 
+    ,Turkish: 'tr' 
+    ,Korean: 'ko' 
+    ,Danish: 'da' 
+    ,Esperanto: 'eo' 
+    ,Arabic: 'ar' 
+    ,Indonesian: 'id' 
+    ,Vietnamese: 'vi' 
+    ,Serbian: 'sr' 
+    ,Volapük: 'vo' 
+    ,Slovak: 'sk' 
+    ,Lithuanian: 'lt' 
+    ,Hebrew: 'he' 
+    ,Bulgarian: 'bg' 
+    ,Persian: 'fa' 
+    ,Slovenian: 'sl' 
+    ,Waray-Waray: 'war'
 }
 
 // for serving static files we're using http://github.com/cloudhead/node-static
