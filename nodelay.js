@@ -96,7 +96,7 @@ function processEdit(data) {
     if (__setlanguages == false) {
         __setlanguages = true;
         langel = document.getElementById('languages');
-        var langhtml = '';
+        var langhtml = '<a href="/">All</a> ';
         var currentlang = '';
         var langcount = 0;
         for (var desc in edit.languages) {
