@@ -76,7 +76,7 @@
         }
         
         function formatEdit(edit) {
-            var out = "<a href=\""+edit.url+"\">"+edit.title+"<\/a> " + edit.change + " " + edit.text
+            var out = "<a target=\"_blank\" href=\""+edit.url+"\">"+edit.title+"<\/a> " + "<span class=\"change\">" + edit.change + "<\/span>" + " " + edit.text
             // Add types from metaweb
             if (edit.types) {
                 var typetext = [];
@@ -189,13 +189,15 @@
                 .width(function() { return container.offsetWidth })
                 .height(function() { return container.offsetHeight })
                 .fillStyle('rgba(0,0,0,0.01)')
-                .event("mousedown", pv.Behavior.pan())
-                .event("mousewheel", pv.Behavior.zoom());
+                .event("mousedown", pv.Behavior.pan().bound(true))
+                .event("mousewheel", pv.Behavior.zoom().bound(true));
             
             force = vis.add(pv.Layout.Force)
                 .nodes(function() { return nodes })
                 .links(function() { return links })
-                .springConstant(0.2);
+                .bound(true)
+                .springConstant(0.2)
+                .chargeConstant(-20);
             
             force.link.add(pv.Line);
             
@@ -236,6 +238,12 @@
             h1, h2 {
                 color: #00ff99;
                 text-shadow: 3px 3px 8px #000;
+                padding: 2px;
+                margin: 0px;
+            }
+            p {
+                padding: 2px;
+                margin: 5px 0px;
             }
             #vis {
                 width: 100%;
@@ -249,6 +257,23 @@
                 -moz-box-shadow:inset 2px 2px 8px #222;
                 -webkit-box-shadow:inset 2px 2px 8px #222;
             }
+            ul {
+                list-style-type: none;
+                margin: 5px 0px;
+                padding: 0px;
+            }
+            li {
+                padding: 0;
+                margin: 10px 0px 10px 15px;
+            }
+            li a {
+                font-weight: bold;
+                text-decoration: none;
+            }
+            span.change {
+                color: #8ff;
+                font-style: italic;
+            }
         </style>
     </head>
     <body>
@@ -257,6 +282,7 @@
         <p id="status"></p>
         <div id="vis">
         </div>
+        <h2>Most Recent 20</h2>
         <ul id="messages">
         </ul>
         <img id="doggy" src="images/nodelayKnockout.jpg" align="right">
