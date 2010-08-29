@@ -152,7 +152,12 @@ var typeIndex = {};
 var groupNodes = {};
 
 function processEdit(data) {
-    var edit = JSON.parse(data);
+    try {
+        var edit = JSON.parse(data);
+    } catch (e) {
+        window.console && console.error && console.error('Failed to parse: ' + e + ' for: ' + data);
+        return;
+    }
 
     // Update user
     usercountel = document.getElementById('updates');

@@ -1,7 +1,7 @@
 // Copyright: Max Carlson <http://maxcarlson.com/>
 var utils = {
     // hash of callbacks by url
-    ,jscallbacks: {}
+    jscallbacks: {}
     // handler executed when a library is loaded
     ,loadJSLibHandler: function (url) {
         //console.log('loaded', url);
