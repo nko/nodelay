@@ -173,30 +173,53 @@
             }
             
             var group = 0,
-                groupNode;
+                groupNodes = [];
+                
             if (edit.types && edit.types.length > 0) {
-                if (!(edit.types[0].id in typeIndex)) {
-                    types.push(edit.types[0].id);
-                    typeIndex[edit.types[0].id] = types.length;
-                    // create a node for this type:
-                    groupNode = { nodeName: edit.types[0].text, group: types.length, type: edit.types[0].id, nodeIndex: nodes.length };
-                    groupNodes[edit.types[0].id] = groupNode;
-                    nodes.push(groupNode);
+                for (var i = 0; i < edit.types.length; i++) {
+                    var type = edit.types[i];
+                    if (!(type.id in typeIndex) || !(type.id in groupNodes)) {
+                        types.push(type.id);
+                        typeIndex[type.id] = types.length;
+                        // create a node for this type:
+                        var groupNode = { 
+                            nodeName: type.text, 
+                            group: types.length, 
+                            type: type.id, 
+                            nodeIndex: nodes.length, 
+                            x: randomX(), 
+                            y: randomY() 
+                        };
+                        groupNodes[type.id] = groupNode;
+                        nodes.push(groupNode);
+                    }
+                    groupNodes.push(groupNodes[type.id]);
                 }
                 group = typeIndex[edit.types[0].id];
-                groupNode = groupNodes[edit.types[0].id];
             }
-                        
-            var node = { nodeName: edit.title, group: group, nodeIndex: nodes.length, lastTouched: Date.now() };
+            
+            var pos = groupNode ? randomOffset(groupNode) : randomOuter();
+                
+            var node = { 
+                nodeName: edit.title,
+                group: group,
+                nodeIndex: nodes.length,
+                lastTouched: Date.now(),
+                x: pos.x,
+                y: pos.y 
+            };
             nodes.push(node)
             
-            if (groupNode) {
-                groupNode.lastTouched = Date.now();
-                links.push({ source: groupNode.nodeIndex, target: node.nodeIndex, value: 5 });
+            if (groupNodes.length > 0) {
+                for (var i = 0; i < groupNodes.length; i++) {
+                    var groupNode = groupNodes[i];
+                    groupNode.lastTouched = Date.now();
+                    links.push({ source: groupNode.nodeIndex, target: node.nodeIndex, value: 5 });
+                }
             }
                         
             // keep nodes to a manageable length, remove oldest one that isn't a type
-            while (nodes.length > 250) {
+            while (nodes.length > 150) {
             
                 var sortedNodes = nodes.slice();
                 sortedNodes.sort(function(a,b) {
@@ -240,6 +263,35 @@
                 vis.render();
             }
         }
+
+        function randomOffset(p) {
+            var a = Math.random() * 2 * Math.PI;
+            var r = Math.random() * 25;
+            return {
+                x: p.x + r*Math.cos(a),
+                y: p.y + r*Math.sin(a)
+            }
+        }
+
+        function randomOuter() {
+            var w = document.getElementById('vis').offsetWidth;
+            var h = document.getElementById('vis').offsetHeight;
+            var a = Math.random() * 2 * Math.PI;
+            var r = (0.5+Math.random()/2) * Math.min(w,h)/2;
+            return {
+                x: w/2 + r*Math.cos(a),
+                y: h/2 + r*Math.sin(a)
+            }
+        }
+        
+        function randomX() {
+            var w = document.getElementById('vis').offsetWidth;
+            return w/2 + (Math.random() - 0.5) * w/4;
+        }
+        function randomY() {
+            var h = document.getElementById('vis').offsetHeight;
+            return h/2 + (Math.random() - 0.5) * h/4;
+        }
         
         var force, vis;
         var nodes = [];
@@ -268,13 +320,22 @@
             force.link.add(pv.Line);
             
             force.node.add(pv.Dot)
-                .size(function(d) { return Math.sqrt(d.linkDegree * (d.type ? 100 : 10)) /* Math.pow(this.scale, -1.5)*/ })
+                .size(function(d) { 
+                    var ageMult = 1.0 - Math.min(1.0, (Date.now() - d.lastTouched) / 15000);
+                    //var linkSize = Math.sqrt(100*d.linkDegree); //(d.type ? 100 : 10));
+                    return 1.0 + (ageMult*25.0);// + (linkSize); 
+                })
                 .fillStyle(function(d) { return d.fix ? "brown" : colors(d.group) })
                 .strokeStyle(function(d) { return d.type ? 'white' : this.fillStyle().brighter() })
                 .lineWidth(1)
                 .title(function(d) { return d.nodeName })
                 .event("mousedown", pv.Behavior.drag())
-                .event("drag", force);
+                .event("drag", force).anchor(function(d) { return d.type ? 'right' : 'left' }).add(pv.Label)
+            .visible(function(d) { return (Date.now() - d.lastTouched) < (d.type ? 15000 : 5000); })
+            .textStyle(function(d) { return d.type ? 'white' : colors(d.group).brighter().brighter() })
+            .text(function(d) { 
+                return d.nodeName;
+            });
             
             vis.render();
             
@@ -356,8 +417,9 @@
     </head>
     <body>
         <h1>Nodelay!</h1>
-        <p>This page shows recent edits to the English language wikipedia, <em>right now</em>.</p>
+        <p>This page shows recent edits to the English language wikipedia, <span class="time">right now</span>.</p>
         <div id="vis"></div>
+        <p>White labels are categories, colored labels are edits to articles. Edges join articles to categories. Old nodes are removed periodically. There are issues.</p>
         <h2>Most Recent 20</h2>
         <p id="status"></p>
         <ul id="messages">
