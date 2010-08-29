@@ -87,11 +87,12 @@ function processEdit(data) {
 
     // Update user count
     usercountel = document.getElementById('updates');
-    var usercounttext = commaSeparated(edit.usercount) + ' user' + (edit.usercount == 1 ? '' : 's') + ' from ' + commaSeparated(edit.uniqueips) + ' unique address' + (edit.uniqueips == 1 ? '' : 'es');
+    var usercounttext = commaSeparated(edit.usercount) + ' user' + (edit.usercount == 1 ? '' : 's') 
+    var uniqueiptext = ' from ' + commaSeparated(edit.uniqueips) + ' unique address' + (edit.uniqueips == 1 ? '' : 'es');
     var editcounttext = commaSeparated(edit.editcount) + ' edit' + (edit.editcount == 1 ? '' : 's');
-    var userstring = 'Nodelay has ' + usercounttext + ' and has served ' + editcounttext + '!';
+    var userstring = 'Nodelay has served ' + editcounttext + ' to ' + usercounttext + uniqueiptext + '!';
     usercountel.innerHTML = userstring;
-    top.document.title = userstring;
+    top.document.title = usercounttext + ' online now';
 
     var queryurl = document.location.search;
     // Update languages table
