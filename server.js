@@ -201,15 +201,17 @@ var ircoptions = {
 }
 
 // Parse out chunks from the wikipedia IRC channel
-var irclinematcher = /^\[\[(.*)\]\] (.?) (http\S+) \* (.*) \* \((.+)\) (.*)$/
+var irclinematcher = /^\[\[(.*)\]\] (.?) (http\S+) \* (.*) \* \(([+-]\d+)\) (.*)$/
 
 ircclient(function(f) {
     f.watch_for(/.*/, function(message) {
         if (message.user === 'rc') {
             var rawtext = colors.removeFormattingAndColors(String(message.text))
+            console.log(rawtext);
             // handle edits
             if (irclinematcher.test(rawtext)) {
                 var matches = rawtext.match(irclinematcher)
+                console.log(matches);
                 if (matches.length > 1) {
                     // If we parsed successfully...
                     var title = matches[1]
@@ -221,6 +223,9 @@ ircclient(function(f) {
                                       text: matches[6] }
                     loadMetadata(title, returnobj);
                 }
+            }
+            else {
+                console.log(false);
             }
         }
     })
