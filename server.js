@@ -194,7 +194,8 @@ var loadMetadata = function(title, responseobj) {
 }
 
 // Parse out chunks from the wikipedia IRC channel
-var irclinematcher = /.*\[\[(.*)\]\].*(http\S+).*\((.+)\) (.*)/
+// See: http://meta.wikimedia.org/wiki/Help:Recent_changes#Understanding_Recent_Changes
+var irclinematcher = /^\[\[(.*)\]\] (.?) (http\S+) \* (.*) \* \(([+-]\d+)\) (.*)$/
 
 var myjerk = jerk(function(f) {
     f.watch_for(/.*/, function(message) {
@@ -206,13 +207,13 @@ var myjerk = jerk(function(f) {
                 if (matches.length > 1) {
                     // If we parsed successfully...
                     var title = matches[1]
-
-                    var returnobj = {title: title,
-                                    url: matches[2],
-                                    change: matches[3],
-                                    text: matches[4]}
-
-                    loadMetadata(title, returnobj);
+                    var returnobj = { title: title,
+                                      flags: matches[2],
+                                      url: matches[3],
+                                      user: matches[4],
+                                      change: matches[5],
+                                      text: matches[6] }
+                    loadMetadata(title, returnobj)
                 }
             }
         }
