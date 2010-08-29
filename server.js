@@ -34,14 +34,21 @@ http.createServer(function (req, res) {
     if (req.url === '/') req.url = '/index.html'
 
     req.addListener('end', function() {
+        var language
         // handle polling connections
-        if (req.url.indexOf('/poll') != -1) {
+        if (req.url.match(/^\/poll/)) {
             var client = function(newData) {
                 writeResponse(res, newData)
             };
             waitingclients.push(client);
-        } else if (req.url.indexOf('/languages') != -1) {
-            writeResponse(res, JSON.stringify(languages))
+        } else if (req.url.match(/^\/language/)) {
+            var language = req.url.match(/language\/(\w+)$/)
+            if (language && language.length > 1) {
+                console.log('found language', language[1])
+                req.url = '/index.html'
+            } else {
+                writeResponse(res, JSON.stringify(languages))
+            }
         } else {
             fileServer.serve(req,res)
         }
@@ -125,9 +132,10 @@ var lookInGoogle = function(returnobj, callback) {
                     var results = data.responseData.results;
                     for (var i = 0, l = results.length; i < l; i++) {
                         var url = results[i].unescapedUrl;
-                        if (url.match(/ikipedia.org\/wiki/)) {
+                        if (url.match(/wikipedia.org\/wiki/)) {
                             //console.log('pagerank for', url, i);
                             returnobj.googlerank = i;
+                            break;
                         }
 
                     }
@@ -194,6 +202,7 @@ var loadMetadata = function(returnobj) {
             var out = JSON.stringify(returnobj)
             //console.log('finally rendering', JSON.stringify(returnobj));
             websocket.broadcast(out);
+            // broadcast to long-poll clients
             while (waitingclients.length) {
                 var client = waitingclients.shift()
                 // TODO: don't use a direct callback
@@ -222,7 +231,8 @@ var myjerk = jerk(function(f) {
                                       ,url: matches[3]
                                       ,user: matches[4]
                                       ,change: matches[5]
-                                      ,text: matches[6] }
+                                      ,text: matches[6]
+                                      ,languages: languages}
                     loadMetadata(returnobj)
                 }
             }

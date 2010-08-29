@@ -75,6 +75,7 @@ function setUpEvents(ws) {
     
 }
 
+var __setlanguages = false;
 
 function processEdit(data) {
     try {
@@ -84,11 +85,22 @@ function processEdit(data) {
         return;
     }
 
-    // Update user
+    // Update user count
     usercountel = document.getElementById('updates');
     var userstring = 'Nodelay has ' + edit.usercount + ' user' + (edit.usercount == 1 ? '!' : 's!');
     usercountel.innerHTML = userstring;
     top.document.title = userstring;
+
+    // Update languages table
+    if (__setlanguages == false) {
+        __setlanguages = true;
+        langel = document.getElementById('languages');
+        var langhtml = '';
+        for (var desc in edit.languages) {
+            langhtml += '<a href="' + '/language/' + edit.languages[desc] + '">' + desc + '</a> ';
+        }
+        langel.innerHTML = langhtml;
+    }
 
     // Update the HTML
     var li = document.createElement('li');
