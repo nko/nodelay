@@ -116,6 +116,7 @@ var uniqueiphash = {};
 var numEdits = 0;
 
 var categorycounter = {};
+var categorynamebyid = {};
 
 // for serving static files we're using http://github.com/cloudhead/node-static
 var fileServer = new stat.Server()
@@ -225,6 +226,7 @@ var lookInFreebase = function(returnobj, callback) {
                             } else {
                                 categorycounter[type.id]++;
                             }
+                            categorynamebyid[type.id] = type.text;
                             //console.log('found type', JSON.stringify(categorycounter));
                         }
                     }
@@ -339,6 +341,7 @@ var loadMetadata = function(returnobj) {
             returnobj.editcount = numEdits;
             returnobj.uniqueips = uniqueips.length;
             returnobj.categorycounter = categorycounter;
+            returnobj.categorynames = categorynamebyid;
             var out = JSON.stringify(returnobj)
             //console.log('finally rendering', JSON.stringify(returnobj));
             websocket.broadcast(out);
