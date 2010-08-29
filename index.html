@@ -309,7 +309,7 @@
                 .title(function(d) { return d.nodeName })
                 .event("mousedown", pv.Behavior.drag())
                 .event("drag", force).anchor(function(d) { return d.type ? 'right' : 'left' }).add(pv.Label)
-            .visible(function(d) { return (Date.now() - d.lastTouched) < (d.type ? 15000 : 5000); })
+            .visible(function(d) { return (Date.now() - d.lastTouched) < (d.type ? 5000 : 10000); })
             .textStyle(function(d) { return d.type ? 'white' : colors(d.group).brighter().brighter() })
             .text(function(d) { 
                 return d.nodeName;
@@ -370,7 +370,7 @@
             }
             ul {
                 list-style-type: none;
-                margin: 5px 0px;
+                margin: 5px 0px 30px 0px;
                 padding: 0px;
             }
             li {
