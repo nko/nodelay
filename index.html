@@ -8,90 +8,22 @@
         <script type="text/javascript" src="web-socket-js/swfobject.js"></script>
         <script type="text/javascript" src="web-socket-js/FABridge.js"></script>
         <script type="text/javascript" src="web-socket-js/web_socket.js"></script>        
+        <!-- this is all our WebSocket and Protovis stuff -->
         <script type="text/javascript" src="nodelay.js"></script>
-        <style type="text/css">
-            body {
-                background: #444;
-                color: white;
-                margin: 20px;
-                font: 14px/1.2 Helvetica, sans-serif;
-            }
-            a {
-                color: yellow;
-            }
-            img#doggy {
-                margin-left: 10px;
-                margin-bottom: 20px;
-                border-right: 1px solid white;
-                border-bottom: 1px solid white;
-            }
-            h1, h2 {
-                color: #00ff99;
-                text-shadow: 3px 3px 8px #000;
-                padding: 2px;
-                margin: 10px 0px 0px 0px;
-            }
-            p {
-                padding: 2px;
-                margin: 5px 0px;
-            }
-            #vis {
-                width: 100%;
-                height: 500px;
-                background: #333;
-                border-left: 1px solid #444;
-                border-top: 1px solid #444;
-                border-right: 1px solid #444;
-                border-bottom: 1px solid #444;
-                box-shadow:inset 2px 2px 8px #222;
-                -moz-box-shadow:inset 2px 2px 8px #222;
-                -webkit-box-shadow:inset 2px 2px 8px #222;
-            }
-            ul {
-                list-style-type: none;
-                margin: 5px 0px 30px 0px;
-                padding: 0px;
-            }
-            li {
-                padding: 0;
-                margin: 10px 0px 10px 15px;
-            }
-            li a {
-                font-weight: bold;
-                text-decoration: none;
-            }
-            li a:hover {
-                text-decoration: underline;
-            }
-            span.change {
-                color: #8ff;
-            }
-            span.comment {
-                color: #f8f;
-            }
-            span.time {
-                color: #8f8;
-            }
-            span.user {
-                color: #fa8;
-            }
-        </style>
+        <link href="styles.css" rel="stylesheet" type="text/css" />
     </head>
     <body>
         <h1 id="updates">Nodelay!</h1>
-        <p>This page shows recent edits to the English language wikipedia, <span class="time">right now</span>.</p>
-        <div id="vis"></div>
+        <p>This page shows recent edits to the English language wikipedia, <span class="time">right now</span>. <a href="about.html">Read more</a>.</p>
+        <div id="container">
+            <div id="vis"></div>
+            <div id="stop"><a href="#" onclick="return toggleVis()">stop hurting my ipad</a></div>
+        </div>
         <p>White labels are categories, colored labels are edits to articles. Edges join articles to categories. Old nodes are removed periodically. There are issues.</p>
         <h2>Most Recent 20</h2>
         <p id="status"></p>
         <ul id="messages">
         </ul>
-        <img id="doggy" src="images/nodelayKnockout.jpg" align="right">
-        <h2>What / Why / How?</h2>
-        <p>You're looking at team Nodelay's entry into <a href="http://nodeknockout.com/">Node Knockout</a>, a 48hr programming contest to explore <a href="http://nodejs.org/">node.js</a>. We decided to transform the output of Wikipedia's IRC edit tracking bot into a tidy stream of JSON objects, annotated with information from external datasources, and then visualize that stream.</p>
-        <p>So far we're using <a href="http://github.com/gf3/Jerk/">Jerk</a>, <a href="http://github.com/miksago/node-websocket-server">node-websocket-server</a> <a href="http://github.com/cloudhead/node-static">node-static</a> and <a href="http://howtonode.org/step-of-conductor">Step</a> to help parallelize HTTP requests. We borrowed a bit of <a href="http://www.jibble.org/pircbot.php">Pircbot</a> to strip formatting information. WebSockets seem to be working in Firefox thanks to a bit of Flash glue from <a href="http://github.com/gimite/web-socket-js/">web-socket-js</a> and a good old fashioned <a href="http://github.com/waywardmonkeys/netty-flash-crossdomain-policy-server/blob/master/sample_flash_policy.xml">socket policy file</a> on port 843. We also hacked in a polling/long response implementation so it all works on devices without Flash and WebSockets, namely the iPad.</p>
-        <p>We're listening to the English <a href="http://meta.wikimedia.org/wiki/IRC_Channels#Recent_changes">Wikipedia IRC server</a> for update notifications.  For each update, we request the page edit metadata using the <a href="http://www.mediawiki.org/wiki/API">Wikipedia APIs</a> and load additional semantic category data from <a href="http://www.freebase.com/docs/data">Metaweb's Freebase</a> and try to get a rank for the 'authority' of the wikipedia entry using <a href="http://code.google.com/apis/ajaxsearch/">Google</a>.  Finally, we return an annotated JSON object to the browser using the <a href="http://dev.w3.org/html5/websockets/">HTML5 Web Socket APIs</a>. Mashup-tastic!</p>
-        <p>That physics simulation up there that's pushing your CPU up to 100% is powered by the fabulous <a href="http://protovis.org">Protovis</a>. Try using your mousewheel to zoom, drag to pan, <a href="http://vis.stanford.edu/protovis/ex/force.html">check out the example</a> to get one for yourself.</p>
         <a href="http://nodeknockout.com/teams/nodelay" target="nko" title="Help me win Node.js KO!"><img style="position: fixed; top: 5px; right: 5px; border: 0px;" src="http://nodeknockout.com/images/voteko.png" alt="Help me win Node.js KO!" /></a>
     </body>
 </html>
