@@ -29,28 +29,27 @@ h1#updates {
     margin-bottom: 10px;
 }
 #languages {
-    float: right;    
-    margin-left: 15px;
-    margin-bottom: 5px;
+    margin: 0px;
 }
 #languages a {
+    font-size: 11px;
     display: inline-block;
     text-decoration: none;
     background: #000;
-    padding: 6px 10px;
-    border-radius: 5px;
-    box-shadow:inset 2px 2px 8px #222;
-    -moz-box-shadow:inset 2px 2px 8px #222;
-    -webkit-box-shadow:inset 2px 2px 8px #222;    
+    color: #ff0;
+    padding: 4px 6px;
+    margin-bottom: 5px;
+    border-radius: 3px;
 }
 #languages a:hover {
     text-decoration: underline;
 }
 #languages a.selected {
-    color: white;
+    background: #ff0;
+    color: #000;
 }
 #intro {
-    float: left;    
+    clear: both;
     margin-bottom: 5px;
 }
 #container {
