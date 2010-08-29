@@ -345,7 +345,7 @@ function initVis() {
         .iterations(null); // continuous
     
     force.link.add(pv.Line)
-        .strokeStyle('white')
+        .strokeStyle('black')
         .lineWidth(0.5);
     
     force.node.add(pv.Dot)
@@ -374,7 +374,7 @@ function initVis() {
         .canvas('legend')
         .width(function() { return container.offsetWidth })
         .height(function() { return container.offsetHeight })        
-        .add(pv.Dot)
+      .add(pv.Dot)
         .data(reverseTypes)
         .bottom(function(d) { return 15 + this.index * 15 })
         .size(15)
