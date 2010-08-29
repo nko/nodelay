@@ -36,9 +36,9 @@ var freebaseclient = http.createClient(80, 'www.freebase.com')
 var lookInFreebase = function(title, returnobj, callback) {
     // attempt to look up in freebase
     title = title.replace(/ \([^\)]+\)/, '');
-    var freebaseurl = '/experimental/topic/basic?id=/en/' + title.replace(/[^\w\d]/g, "_").toLowerCase()
+    var url = '/experimental/topic/basic?id=/en/' + title.replace(/[^\w\d]/g, "_").toLowerCase()
 
-    var request = freebaseclient.request('GET', freebaseurl, {'host': 'www.freebase.com','user-agent': 'bloomclient'})
+    var request = freebaseclient.request('GET', url, {'host': 'www.freebase.com','user-agent': 'bloomclient'})
     request.end()
 
     request.on('response', function (response) {
@@ -52,18 +52,63 @@ var lookInFreebase = function(title, returnobj, callback) {
 
         // process when the response ends
         response.on('end', function () {
-            //console.log('parsing: ' + freebaseurl + ' for chunk ' + responsedata)
+            //console.log('parsing: ' + url + ' for chunk ' + responsedata)
             var freebase = JSON.parse(responsedata)
             for (var id in freebase) {
                 var responseobj = freebase[id]
                 if (responseobj.status === '200 OK') {
-                    returnobj.freebase = freebaseurl
+                    returnobj.freebase = url
                     if (responseobj.result.type.length) {
                         returnobj.types = responseobj.result.type
                     }
                 }
             }
 
+            callback();
+        })
+    })
+}
+
+
+// HTTP client for google lookups
+var googleclient = http.createClient(80, 'ajax.googleapis.com')
+// Look up a title in freebase, find types
+var lookInGoogle = function(title, returnobj, callback) {
+    // attempt to look up in freebase
+    var url = "/ajax/services/search/web?v=1.0&q='" + querystring.escape(title) + "'";
+
+    var request = googleclient.request('GET', url, {'host': 'ajax.googleapis.com'})
+    request.end()
+
+    request.on('response', function (response) {
+        response.setEncoding('utf8')
+
+        var responsedata = ''
+        response.on('data', function (chunk) {
+            // Build up response data
+            responsedata += chunk
+        })
+
+        // process when the response ends
+        response.on('end', function () {
+            //console.log('parsing: ' + url + ' for chunk ' + responsedata)
+            try {
+                var data = JSON.parse(responsedata)
+                if (data.responseData && data.responseData.results) {
+                    var results = data.responseData.results;
+                    for (var i = 0, l = results.length; i < l; i++) {
+                        var url = results[i].unescapedUrl;
+                        if (url.match(/ikipedia.org\/wiki/)) {
+                            //console.log('pagerank for', url, i);
+                            returnobj.googlerank = i;
+                        }
+
+                    }
+                }
+            } catch (e) {
+                //console.log('bad request: ' + e + ', ' + url + ' for chunk ' + responsedata)
+
+            }
             callback();
         })
     })
@@ -113,6 +158,7 @@ var loadMetadata = function(title, responseobj) {
                 lookInFreebase(title, responseobj, this.parallel());
             }
             lookInWikipedia(title, responseobj, this.parallel());
+            lookInGoogle(title, responseobj, this.parallel());
         },
         function renderContent(err) {
             //console.log('finally rendering', JSON.stringify(responseobj));
