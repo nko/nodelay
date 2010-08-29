@@ -66,18 +66,21 @@ try {
         //console.log('readStream end')
         //console.log('got "' + readBuffer + '"')
         if (readBuffer.length > 0) {
-            var data = JSON.parse(readBuffer);
+            var data = JSON.parse(readBuffer)
             numEdits += (data.numEdits || 0)
             if (data.uniqueips && data.uniqueips.length) {
                 data.uniqueips.forEach(function(ip) {
                     if (!(ip in uniqueiphash)) {
-                        uniqueiphash[ip] = true;
-                        uniqueips.push(ip);
+                        uniqueiphash[ip] = true
+                        uniqueips.push(ip)
                     }
                 })
             }
             if (data.categorycounter) {
-                categorycounter = data.categorycounter;
+                categorycounter = data.categorycounter
+            }
+            if (data.categorynamebyid) {
+                categorynamebyid = data.categorynamebyid
             }
         }
         //console.log('triggering save in 10 seconds')
@@ -93,7 +96,8 @@ function saveCounters() {
         time: Date.now(),
         numEdits: numEdits,
         uniqueips: uniqueips,
-        categorycounter: categorycounter
+        categorycounter: categorycounter,
+        categorynamebyid: categorynamebyid
     })
     var writeStream = fs.createWriteStream('counters.json', {
         flags: 'w+',
