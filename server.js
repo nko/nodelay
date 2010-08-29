@@ -123,6 +123,7 @@ var lookInGoogle = function(title, returnobj, callback) {
                     }
                 }
             } catch (e) {
+                returnobj.googlerank = 0;
                 //console.log('bad request: ' + e + ', ' + url + ' for chunk ' + responsedata)
 
             }
