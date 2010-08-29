@@ -1,14 +1,11 @@
 // Copyright: Max Carlson <http://maxcarlson.com/>
 var utils = {
-    // jsloaded[url] is false while loading, true after load
-    jsloaded: {}
-    // array of callbacks for each url
+    // hash of callbacks by url
     ,jscallbacks: {}
     // handler executed when a library is loaded
     ,loadJSLibHandler: function (url) {
         //console.log('loaded', url);
         // update loader state
-        utils.jsloaded[url] = true;
         // execute callbacks
         var callbacks = utils.jscallbacks[url] || [];
         delete utils.jscallbacks[url];
@@ -23,7 +20,6 @@ var utils = {
             // add callback to queue if defined
             (utils.jscallbacks[url] || (utils.jscallbacks[url] = [])).push(callback);
         }
-        utils.jsloaded[url] = false;
         //console.log('loading', url);
         var script = document.createElement('script');
         script.setAttribute('type', 'text/javascript');
@@ -43,6 +39,7 @@ var utils = {
             script.onload = function(){
                 script.onload = null;
                 utils.loadJSLibHandler(url);
+                addto.removeChild( script );
             }
         }
 
