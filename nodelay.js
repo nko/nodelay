@@ -110,7 +110,7 @@ function processEdit(data) {
         langel.innerHTML = langhtml;
 
         langel = document.getElementById('lang');
-        langel.innerHTML = (langcount < 2 ? 'the ' : '') + (currentlang || ' all') + ' wikipedia page' + (langcount != 1 ? 's' : '');
+        langel.innerHTML = (langcount == 1 ? 'the ' : '') + (currentlang || ' all') + ' wikipedia page' + (langcount != 1 ? 's' : '');
     }
 
     // Filter by language
