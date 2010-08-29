@@ -29,6 +29,8 @@ var languages = {
     ,Swedish: 'sv'
 }
 
+var clientips = [];
+
 // for serving static files we're using http://github.com/cloudhead/node-static
 var fileServer = new stat.Server()
 
@@ -53,6 +55,8 @@ http.createServer(function (req, res) {
     if (req.url === '/') req.url = '/index.html'
 
     req.addListener('end', function() {
+        clientips.push(req.socket.remoteAddress);
+        //console.log('added client IP', clientips);
         var language
         // handle polling connections
         if (req.url.match(/^\/poll/)) {
@@ -138,7 +142,10 @@ var googleclient = http.createClient(80, 'ajax.googleapis.com')
 var lookInGoogle = function(returnobj, callback) {
     var title = returnobj.title;
     // attempt to look up in freebase
-    var url = "/ajax/services/search/web?v=1.0&key=ABQIAAAANJy59z-JG5ojQlRVP3myHBQazc0JSD0GCdkBcD0H4asbApndtBRNVqQ4MvCnn6oQF6lHyWk4Q9S5AA&q='" + querystring.escape(title) + "'";
+    var clientip = clientips[Math.floor(Math.random() * clientips.length)]
+    //console.log('found clientip', clientip, clientips);
+    var url = "/ajax/services/search/web?v=1.0&key=ABQIAAAANJy59z-JG5ojQlRVP3myHBQazc0JSD0GCdkBcD0H4asbApndtBRNVqQ4MvCnn6oQF6lHyWk4Q9S5AA&userip=" + clientip + "&q='" + querystring.escape(title) + "'";
+    console.log('google request', url);
 
     var request = googleclient.request('GET', url, {'host': 'ajax.googleapis.com','referer': 'http://code.google.com/apis'})
     request.end()
@@ -154,7 +161,7 @@ var lookInGoogle = function(returnobj, callback) {
 
         // process when the response ends
         response.on('end', function () {
-            //console.log('parsing: ' + url + ' for chunk ' + responsedata)
+            console.log('parsing: ' + url + ' for chunk ' + responsedata)
             try {
                 var data = JSON.parse(responsedata)
                 if (data.responseData && data.responseData.results) {
@@ -269,6 +276,7 @@ return jerk(function(f) {
                                       ,change: matches[5]
                                       ,text: matches[6]
                                       ,languages: languages
+                                      ,source: message.source
                                       ,source: message.source
                                     }
                     loadMetadata(returnobj)

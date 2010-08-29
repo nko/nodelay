@@ -164,7 +164,7 @@ function formatEdit(edit) {
     out += size + '<span class="change">' + edit.change + '<\/span> <span class="comment">' + edit.text + '<\/span>' + time + user;
     var rank = edit.googlerank;
     if (rank != null) {
-        //console.log('google rank', rank);
+        console.log('google rank', rank);
         out = '<span style="opacity:' + ((10 - rank) / 10) + ';">' + out + '</span>';
     }
     return out;
