@@ -152,11 +152,6 @@ function relativeDate(then) {
     return t + " week" + (t == 1 ? '' : 's') + " ago";
 }        
 
-
-var types = [];
-var typeIndex = {};
-var groupNodes = {};
-
 function processEdit(data) {
     try {
         var edit = JSON.parse(data);
@@ -179,6 +174,18 @@ function processEdit(data) {
         messageel.removeChild(messageel.firstChild);
     }
     
+    if (visRunning) {
+        updateVis(edit);
+    }
+}
+
+var visRunning = true;
+var types = [];
+var typeIndex = {};
+var groupNodes = {};
+
+function updateVis(edit) {
+
     var group = 0,
         groupNodes = [];
         
@@ -359,4 +366,20 @@ function initVis() {
         }, 50);
     }
 
+}
+
+function toggleVis() {
+    visRunning = !visRunning;
+    var link = document.getElementById('stop').getElementsByTagName('a')[0];
+    if (visRunning) { 
+        force.iterations(null);
+        link.innerHTML = "stop hurting my ipad!"
+    }
+    else { 
+        force.iterations(1);
+        link.innerHTML = "start it up again!"
+    }
+    force.reset();
+    vis.render();
+    return false; // for event handlers
 }

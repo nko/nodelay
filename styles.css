@@ -1,0 +1,78 @@
+body {
+    background: #444;
+    color: white;
+    margin: 20px;
+    font: 14px/1.2 Helvetica, sans-serif;
+}
+a {
+    color: yellow;
+}
+img#doggy {
+    margin-left: 10px;
+    margin-bottom: 20px;
+    border-right: 1px solid white;
+    border-bottom: 1px solid white;
+}
+h1, h2 {
+    color: #00ff99;
+    text-shadow: 3px 3px 8px #000;
+    padding: 2px;
+    margin: 10px 0px 0px 0px;
+}
+p {
+    padding: 2px;
+    margin: 5px 0px;
+}
+#container {
+   position: relative;
+   width: 100%;
+   height: 500px;
+}
+#vis {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 500px;
+    background: #333;
+    border-left: 1px solid #444;
+    border-top: 1px solid #444;
+    border-right: 1px solid #444;
+    border-bottom: 1px solid #444;
+    box-shadow:inset 2px 2px 8px #222;
+    -moz-box-shadow:inset 2px 2px 8px #222;
+    -webkit-box-shadow:inset 2px 2px 8px #222;
+}
+#stop {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+}
+ul {
+    list-style-type: none;
+    margin: 5px 0px 30px 0px;
+    padding: 0px;
+}
+li {
+    padding: 0;
+    margin: 10px 0px 10px 15px;
+}
+li a {
+    font-weight: bold;
+    text-decoration: none;
+}
+li a:hover {
+    text-decoration: underline;
+}
+span.change {
+    color: #8ff;
+}
+span.comment {
+    color: #f8f;
+}
+span.time {
+    color: #8f8;
+}
+span.user {
+    color: #fa8;
+}
