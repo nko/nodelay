@@ -96,10 +96,18 @@ function processEdit(data) {
         __setlanguages = true;
         langel = document.getElementById('languages');
         var langhtml = '';
+        var currentlang = '';
         for (var desc in edit.languages) {
-            langhtml += '<a href="' + '/?language=' + edit.languages[desc] + '">' + desc + '</a> ';
+            var langcode = edit.languages[desc];
+            langhtml += '<a href="' + '/?language=' + langcode + '">' + desc + '</a> ';
+            if (window.location.search.indexOf(langcode) != -1) {
+                currentlang += desc + ' ';
+            }
         }
         langel.innerHTML = langhtml;
+
+        langel = document.getElementById('lang');
+        langel.innerHTML = currentlang;
     }
 
     // Update the HTML

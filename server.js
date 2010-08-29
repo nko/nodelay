@@ -45,7 +45,9 @@ http.createServer(function (req, res) {
             var language = req.url.match(/\?language=(\w+)$/)
             if (language && language.length > 1) {
                 console.log('found language', '#' + language[1] + '.wikipedia')
-                thejerk.join('#' + language[1] + '.wikipedia');
+                if (thejerk && thejerk.join) {
+                    thejerk.join('#' + language[1] + '.wikipedia');
+                }
                 
                 req.url = '/index.html?language=' + language[1]
                 fileServer.serve(req,res)
