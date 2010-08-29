@@ -51,6 +51,7 @@ var lookInFreebase = function(title, returnobj, callback) {
 
         // process when the response ends
         response.on('end', function () {
+            //console.log('parsing: ' + freebaseurl + ' for chunk ' + responsedata)
             var freebase = JSON.parse(responsedata)
             for (var id in freebase) {
                 var responseobj = freebase[id]
@@ -60,10 +61,7 @@ var lookInFreebase = function(title, returnobj, callback) {
                 }
             }
 
-            //console.log('parsing: ' + freebaseurl + ' for chunk ' + responsedata)
             callback();
-            //websocket.broadcast(JSON.stringify(returnobj))
-            //console.log(JSON.stringify(returnobj) + '\n')
         })
     })
 }
@@ -97,22 +95,24 @@ var lookInWikipedia = function(title, returnobj, callback) {
             }
 
             callback();
-            //websocket.broadcast(JSON.stringify(returnobj))
-            //console.log(JSON.stringify(returnobj) + '\n')
         })
     })
 }
+
+// Match wikipedia titles that are 'special', e.g. 'User talk:...'
+var specialmatcher = /^([\w ]+:)/
 
 // Make requests in parallel (eek!)
 var loadMetadata = function(title, responseobj) {
     Step(
         function loadData() {
-            lookInFreebase(title, responseobj, this.parallel());
+            if (! title.match(specialmatcher)) {
+                lookInFreebase(title, responseobj, this.parallel());
+            }
             lookInWikipedia(title, responseobj, this.parallel());
         },
         function renderContent(err) {
-            // respond now
-            console.log('finally rendering', JSON.stringify(responseobj));
+            //console.log('finally rendering', JSON.stringify(responseobj));
             websocket.broadcast(JSON.stringify(responseobj))
         }
     );
@@ -129,33 +129,23 @@ var ircoptions = {
 // Parse out chunks from the wikipedia IRC channel
 var irclinematcher = /.*\[\[(.*)\]\].*(http\S+).*\((.+)\) (.*)/
 
-// Match wikipedia titles that are 'special', e.g. 'User talk:...'
-var specialmatcher = /^([\w ]+:)/
-
 ircclient(function(f) {
     f.watch_for(/.*/, function(message) {
         if (message.user === 'rc') {
             var rawtext = colors.removeFormattingAndColors(String(message.text))
             // handle edits
             if (irclinematcher.test(rawtext)) {
-                var stuff = rawtext.match(irclinematcher)
-                if (stuff.length > 1) {
-                    var title = stuff[1]
+                var matches = rawtext.match(irclinematcher)
+                if (matches.length > 1) {
+                    // If we parsed successfully...
+                    var title = matches[1]
 
                     var returnobj = {title: title,
-                                    url: stuff[2],
-                                    change: stuff[3],
-                                    text: stuff[4]}
+                                    url: matches[2],
+                                    change: matches[3],
+                                    text: matches[4]}
 
-                    if (! title.match(specialmatcher)) {
-                        loadMetadata(title, returnobj);
-                        //lookInFreebase(title, returnobj)
-                        //lookInWikipedia(title, returnobj)
-                    } else {
-                        // respond now
-                        websocket.broadcast(JSON.stringify(returnobj))
-                        //console.log(JSON.stringify(returnobj) + '\n')
-                    }
+                    loadMetadata(title, returnobj);
                 }
             }
         }

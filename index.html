@@ -79,13 +79,13 @@
                     var type = edit.types[i];
                     typetext.push(type.text);
                 }
-                out += ' Types: ' + typetext.join(', ');
+                out += '. Types: ' + typetext.join(', ');
             }
             // Add wikipedia metadata
             if (edit.metadata) {
                 for (var pageid in edit.metadata.pages) {
                     var page = edit.metadata.pages[pageid];
-                    out += ' Modified: ' + page.touched + ' Edit counter: ' + page.counter + ' Size: ' + page.length;
+                    out += '. Modified: ' + page.touched + ', Edit counter: ' + page.counter + ', Size: ' + page.length;
                 }
             }
             return out;
