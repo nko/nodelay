@@ -178,8 +178,9 @@ var loadMetadata = function(title, responseobj) {
             lookInGoogle(title, responseobj, this.parallel());
         },
         function renderContent(err) {
-            //console.log('finally rendering', JSON.stringify(responseobj));
+            responseobj.usercount = websocket.manager.length + waitingclients.length;
             var out = JSON.stringify(responseobj)
+            //console.log('finally rendering', JSON.stringify(responseobj));
             websocket.broadcast(out);
             while (waitingclients.length) {
                 var client = waitingclients.shift()
