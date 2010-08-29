@@ -49,9 +49,21 @@ var languages = {
     ,'Waray-Waray': 'war'
 }
 
-var numEdits = 0
-
 // TODO: load counters
+
+fs.createReadStream('counters.json', {
+    flags: 'r',
+    encoding: 'utf8'
+})
+var readBuffer = ''
+fs.on('data', function(data) {
+    readBuffer += data
+})
+fs.on('end', function() {
+    var data = JSON.parse(readBuffer);
+    numEdits += (data.numEdits || 0)
+    setTimeout(saveCounters, 10000)
+})
 
 function saveCounters() {
     var toSave = JSON.stringify({ numEdits: numEdits })
@@ -65,8 +77,9 @@ function saveCounters() {
     writeStream.end(toSave)
 }
 
-//setTimeout(saveCounters, 10000)
-
+var uniqueips = [];
+var uniqueiphash = {};
+var numEdits = 0;
 
 // for serving static files we're using http://github.com/cloudhead/node-static
 var fileServer = new stat.Server()
@@ -92,6 +105,11 @@ http.createServer(function (req, res) {
     if (req.url === '/') req.url = '/index.html'
 
     req.addListener('end', function() {
+        if (! uniqueiphash[req.socket.remoteAddress]) {
+            uniqueiphash[req.socket.remoteAddress] = true;
+            uniqueips.push(req.socket.remoteAddress);
+            //console.log('added client IP', uniqueips);
+        }
         var language
         // handle polling connections
         if (req.url.match(/^\/poll/)) {
@@ -177,7 +195,10 @@ var googleclient = http.createClient(80, 'ajax.googleapis.com')
 var lookInGoogle = function(returnobj, callback) {
     var title = returnobj.title;
     // attempt to look up in freebase
-    var url = "/ajax/services/search/web?v=1.0&key=ABQIAAAANJy59z-JG5ojQlRVP3myHBQazc0JSD0GCdkBcD0H4asbApndtBRNVqQ4MvCnn6oQF6lHyWk4Q9S5AA&q='" + querystring.escape(title) + "'";
+    var clientip = uniqueips[Math.floor(Math.random() * uniqueips.length)]
+    //console.log('found clientip', clientip, uniqueips);
+    var url = "/ajax/services/search/web?v=1.0&key=ABQIAAAANJy59z-JG5ojQlRVP3myHBQazc0JSD0GCdkBcD0H4asbApndtBRNVqQ4MvCnn6oQF6lHyWk4Q9S5AA&userip=" + clientip + "&q='" + querystring.escape(title) + "'";
+    console.log('google request', url);
 
     var request = googleclient.request('GET', url, {'host': 'ajax.googleapis.com','referer': 'http://code.google.com/apis'})
     request.end()
@@ -193,7 +214,7 @@ var lookInGoogle = function(returnobj, callback) {
 
         // process when the response ends
         response.on('end', function () {
-            //console.log('parsing: ' + url + ' for chunk ' + responsedata)
+            console.log('parsing: ' + url + ' for chunk ' + responsedata)
             try {
                 var data = JSON.parse(responsedata)
                 if (data.responseData && data.responseData.results) {
@@ -269,6 +290,7 @@ var loadMetadata = function(returnobj) {
             numEdits++;
             returnobj.usercount = websocket.manager.length + waitingclients.length;
             returnobj.editcount = numEdits;
+            returnobj.uniqueips = uniqueips.length;
             var out = JSON.stringify(returnobj)
             //console.log('finally rendering', JSON.stringify(returnobj));
             websocket.broadcast(out);
@@ -287,8 +309,8 @@ var loadMetadata = function(returnobj) {
 // See: http://meta.wikimedia.org/wiki/Help:Recent_changes#Understanding_Recent_Changes
 var irclinematcher = /^\[\[(.*)\]\] (.?) (http\S+) \* (.*) \* \(([+-]\d+)\) (.*)$/
 
+// Connect to all channels in the languages hash
 var channels = [];
-
 for (var lang in languages) {
     var langcode = languages[lang];
     channels.push('#' + langcode + '.wikipedia');

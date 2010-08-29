@@ -87,7 +87,7 @@ function processEdit(data) {
 
     // Update user count
     usercountel = document.getElementById('updates');
-    var usercounttext = commaSeparated(edit.usercount) + ' user' + (edit.usercount == 1 ? '' : 's');
+    var usercounttext = commaSeparated(edit.usercount) + ' user' + (edit.usercount == 1 ? '' : 's') + ' from ' + commaSeparated(edit.uniqueips) + ' unique address' + (edit.uniqueips == 1 ? '' : 'es');
     var editcounttext = commaSeparated(edit.editcount) + ' edit' + (edit.editcount == 1 ? '' : 's');
     var userstring = 'Nodelay has ' + usercounttext + ' and has served ' + editcounttext + '!';
     usercountel.innerHTML = userstring;
@@ -174,7 +174,7 @@ function formatEdit(edit) {
     out += (size ? size : '') + '<span class="change">' + edit.change + '<\/span> <span class="comment">' + edit.text + '<\/span>' + time + user;
     var rank = edit.googlerank;
     if (rank != null) {
-        //console.log('google rank', rank);
+        console.log('google rank', rank);
         out = '<span style="opacity:' + ((10 - rank) / 10) + ';">' + out + '</span>';
     }
     return out;
