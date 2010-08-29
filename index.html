@@ -253,8 +253,14 @@
             
             vis.render();
             
+            var resizeTimer = 0;
             window.onresize = function() {
-                vis.render();
+                if (resizeTimer) {
+                    clearTimeout(resizeTimer);
+                }
+                resizeTimer = setTimeout(function() {
+                    vis.render();
+                }, 50);
             }
         
         }
