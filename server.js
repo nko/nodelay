@@ -42,14 +42,19 @@ http.createServer(function (req, res) {
             };
             waitingclients.push(client);
         } else if (req.url.match(/\?language=/)) {
-            var language = req.url.match(/\?language=(\w+)$/)
+            var language = req.url.match(/\?language=([\w,]+)$/)
             if (language && language.length > 1) {
-                console.log('found language', '#' + language[1] + '.wikipedia')
+                var langstr = language[1];
                 if (thejerk && thejerk.join) {
-                    thejerk.join('#' + language[1] + '.wikipedia');
+                    var langlist = langstr.split(',');
+                    for (var i = 0, l = langlist.length; i < l; i++) {
+                        var onelang = langlist[i];
+                        //console.log('found language', onelang)
+                        thejerk.join('#' + onelang + '.wikipedia');
+                    }
                 }
                 
-                req.url = '/index.html?language=' + language[1]
+                req.url = '/index.html?language=' + langstr
                 fileServer.serve(req,res)
             } else {
                 writeResponse(res, JSON.stringify(languages))

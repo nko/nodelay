@@ -101,7 +101,7 @@ function processEdit(data) {
             var langcode = edit.languages[desc];
             langhtml += '<a href="' + '/?language=' + langcode + '">' + desc + '</a> ';
             if (window.location.search.indexOf(langcode) != -1) {
-                currentlang += desc + ' ';
+                currentlang += (currentlang !== '' ? ' and ' : '') + desc;
             }
         }
         langel.innerHTML = langhtml;
