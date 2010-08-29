@@ -174,7 +174,7 @@
             }
                         
             // keep nodes to a manageable length, remove oldest one that isn't a type
-            while (nodes.length > 1000) {
+            while (nodes.length > 250) {
             
                 var sortedNodes = nodes.slice();
                 sortedNodes.sort(function(a,b) {
@@ -241,7 +241,7 @@
                 .links(function() { return links })
                 .bound(true)
                 .springConstant(0.2)
-                .chargeConstant(-20);
+                .chargeConstant(-5);
             
             force.link.add(pv.Line);
             
@@ -256,8 +256,14 @@
             
             vis.render();
             
+            var resizeTimer = 0;
             window.onresize = function() {
-                vis.render();
+                if (resizeTimer) {
+                    clearTimeout(resizeTimer);
+                }
+                resizeTimer = setTimeout(function() {
+                    vis.render();
+                }, 50);
             }
         
         }
