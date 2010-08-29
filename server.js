@@ -49,7 +49,24 @@ var languages = {
     ,'Waray-Waray': 'war'
 }
 
-var numEdits = 0;
+var numEdits = 0
+
+// TODO: load counters
+
+function saveCounters() {
+    var toSave = JSON.stringify({ numEdits: numEdits })
+    var writeStream = fs.createWriteStream('counters.json', {
+        flags: 'w+',
+        encoding: 'utf8'
+    })
+    writeSteam.on('close' function() {
+        setTimeout(saveCounters, 10000)
+    });
+    writeStream.end(toSave)
+}
+
+//setTimeout(saveCounters, 10000)
+
 
 // for serving static files we're using http://github.com/cloudhead/node-static
 var fileServer = new stat.Server()
