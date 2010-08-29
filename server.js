@@ -9,6 +9,7 @@ var net = require('net'),
     colors = require('./colors'),
     Step = require('./lib/step')
 
+// These are wikis with over 100000 articles in descending order of size
 // http://meta.wikimedia.org/wiki/List_of_Wikipedias
 var languages = {
     English: 'en'
@@ -265,7 +266,14 @@ var loadMetadata = function(returnobj) {
 // See: http://meta.wikimedia.org/wiki/Help:Recent_changes#Understanding_Recent_Changes
 var irclinematcher = /^\[\[(.*)\]\] (.?) (http\S+) \* (.*) \* \(([+-]\d+)\) (.*)$/
 
-var myjerk = jerk(function(f) {
+var channels = [];
+
+for (var lang in languages) {
+    var langcode = languages[lang];
+    channels.push('#' + langcode + '.wikipedia');
+}
+
+return jerk(function(f) {
     f.watch_for(/.*/, function(message) {
         if (message.user === 'rc') {
             var rawtext = colors.removeFormattingAndColors(String(message.text))
@@ -291,9 +299,8 @@ var myjerk = jerk(function(f) {
 }).connect({
     server: 'irc.wikimedia.org'
     ,nick: 'nodelay-'+(new Date().getTime()).toString(16)
-    ,channels: ['#' + lang + '.wikipedia']
+    ,channels: channels
 })
-return myjerk;
 }
 
 var thejerk = ircclient('en');
