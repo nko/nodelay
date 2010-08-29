@@ -35,6 +35,7 @@ var freebaseclient = http.createClient(80, 'www.freebase.com')
 // Look up a title in freebase, find types
 var lookInFreebase = function(title, returnobj, callback) {
     // attempt to look up in freebase
+    title = title.replace(/ \([^\)]+\)/, '');
     var freebaseurl = '/experimental/topic/basic?id=/en/' + title.replace(/[^\w\d]/g, "_").toLowerCase()
 
     var request = freebaseclient.request('GET', freebaseurl, {'host': 'www.freebase.com','user-agent': 'bloomclient'})
@@ -51,7 +52,7 @@ var lookInFreebase = function(title, returnobj, callback) {
 
         // process when the response ends
         response.on('end', function () {
-            //console.log('parsing: ' + freebaseurl + ' for chunk ' + responsedata)
+            console.log('parsing: ' + freebaseurl + ' for chunk ' + responsedata)
             var freebase = JSON.parse(responsedata)
             for (var id in freebase) {
                 var responseobj = freebase[id]
