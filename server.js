@@ -49,7 +49,8 @@ var languages = {
     ,'Waray-Waray': 'war'
 }
 
-var clientips = [];
+var uniqueips = [];
+var uniqueiphash = {};
 var numEdits = 0;
 
 // for serving static files we're using http://github.com/cloudhead/node-static
@@ -76,8 +77,11 @@ http.createServer(function (req, res) {
     if (req.url === '/') req.url = '/index.html'
 
     req.addListener('end', function() {
-        clientips.push(req.socket.remoteAddress);
-        //console.log('added client IP', clientips);
+        if (! uniqueiphash[req.socket.remoteAddress]) {
+            uniqueiphash[req.socket.remoteAddress] = true;
+            uniqueips.push(req.socket.remoteAddress);
+            //console.log('added client IP', uniqueips);
+        }
         var language
         // handle polling connections
         if (req.url.match(/^\/poll/)) {
@@ -163,8 +167,8 @@ var googleclient = http.createClient(80, 'ajax.googleapis.com')
 var lookInGoogle = function(returnobj, callback) {
     var title = returnobj.title;
     // attempt to look up in freebase
-    var clientip = clientips[Math.floor(Math.random() * clientips.length)]
-    //console.log('found clientip', clientip, clientips);
+    var clientip = uniqueips[Math.floor(Math.random() * uniqueips.length)]
+    //console.log('found clientip', clientip, uniqueips);
     var url = "/ajax/services/search/web?v=1.0&key=ABQIAAAANJy59z-JG5ojQlRVP3myHBQazc0JSD0GCdkBcD0H4asbApndtBRNVqQ4MvCnn6oQF6lHyWk4Q9S5AA&userip=" + clientip + "&q='" + querystring.escape(title) + "'";
     console.log('google request', url);
 
