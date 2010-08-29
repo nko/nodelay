@@ -52,13 +52,15 @@ var lookInFreebase = function(title, returnobj, callback) {
 
         // process when the response ends
         response.on('end', function () {
-            console.log('parsing: ' + freebaseurl + ' for chunk ' + responsedata)
+            //console.log('parsing: ' + freebaseurl + ' for chunk ' + responsedata)
             var freebase = JSON.parse(responsedata)
             for (var id in freebase) {
                 var responseobj = freebase[id]
                 if (responseobj.status === '200 OK') {
                     returnobj.freebase = freebaseurl
-                    returnobj.types = responseobj.result.type
+                    if (responseobj.result.type.length) {
+                        returnobj.types = responseobj.result.type
+                    }
                 }
             }
 
