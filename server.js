@@ -4,14 +4,13 @@ var net = require('net'),
     url = require('url'),
     stat = require('./lib/node-static'),
     ws = require('./lib/ws'),
-    ircclient = require('./lib/jerk/lib/jerk'),
+    jerk = require('./lib/jerk/lib/jerk'),
     colors = require('./colors'),
     Step = require('./lib/step')
 
 
 // for serving static files we're using http://github.com/cloudhead/node-static
 var fileServer = new stat.Server()
-    
 
 // Store a list of clients waiting for the next response (for WS fallback)
 var waitingclients = [];
@@ -46,6 +45,8 @@ http.createServer(function (req, res) {
 var websocket = ws.createServer();
 websocket.listen(8080);
 
+var ircclient = function(languagestr) {
+    var lang = languagestr
 // HTTP client for freebase lookups
 var freebaseclient = http.createClient(80, 'www.freebase.com')
 
@@ -53,7 +54,8 @@ var freebaseclient = http.createClient(80, 'www.freebase.com')
 var lookInFreebase = function(title, returnobj, callback) {
     // attempt to look up in freebase
     title = title.replace(/ \([^\)]+\)/, '');
-    var url = '/experimental/topic/basic?id=/en/' + title.replace(/[^\w\d]/g, "_").toLowerCase()
+    title = title.replace(/[^\w\d]/g, "_").toLowerCase()
+    var url = '/experimental/topic/basic?id=/' + lang + '/' + title
 
     var request = freebaseclient.request('GET', url, {'host': 'www.freebase.com','user-agent': 'bloomclient'})
     request.end()
@@ -85,7 +87,6 @@ var lookInFreebase = function(title, returnobj, callback) {
         })
     })
 }
-
 
 // HTTP client for google lookups
 var googleclient = http.createClient(80, 'ajax.googleapis.com')
@@ -192,18 +193,10 @@ var loadMetadata = function(title, responseobj) {
     );
 }
 
-
-// Connect to wikipedia's IRC server, parse responses, dump as JSON
-var ircoptions = {
-    server: 'irc.wikimedia.org'
-    ,nick: 'bloombot-'+(new Date().getTime()).toString(16)
-    ,channels: ['#en.wikipedia']
-}
-
 // Parse out chunks from the wikipedia IRC channel
 var irclinematcher = /.*\[\[(.*)\]\].*(http\S+).*\((.+)\) (.*)/
 
-ircclient(function(f) {
+var myjerk = jerk(function(f) {
     f.watch_for(/.*/, function(message) {
         if (message.user === 'rc') {
             var rawtext = colors.removeFormattingAndColors(String(message.text))
@@ -224,7 +217,17 @@ ircclient(function(f) {
             }
         }
     })
-}).connect(ircoptions)
+}).connect({
+    server: 'irc.wikimedia.org'
+    ,nick: 'bloombot-'+(new Date().getTime()).toString(16)
+    ,channels: ['#' + lang + '.wikipedia']
+})
+return myjerk;
+}
+
+var ircs = ircclient('en');
+console.log('ircs', ircs.join);
+ircs.join('de');
 
 // this should allow the Flash websocket to connect to us in Firefox 3.6 and friends
 // I found this example file at http://github.com/waywardmonkeys/netty-flash-crossdomain-policy-server/blob/master/sample_flash_policy.xml
