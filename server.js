@@ -242,7 +242,9 @@ var myjerk = jerk(function(f) {
                                       ,user: matches[4]
                                       ,change: matches[5]
                                       ,text: matches[6]
-                                      ,languages: languages}
+                                      ,languages: languages
+                                      ,source: message.source
+                                    }
                     loadMetadata(returnobj)
                 }
             }

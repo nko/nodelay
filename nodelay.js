@@ -91,6 +91,7 @@ function processEdit(data) {
     usercountel.innerHTML = userstring;
     top.document.title = userstring;
 
+    var queryurl = document.location.search;
     // Update languages table
     if (__setlanguages == false) {
         __setlanguages = true;
@@ -100,17 +101,24 @@ function processEdit(data) {
         for (var desc in edit.languages) {
             var langcode = edit.languages[desc];
             langhtml += '<a href="' + '/?language=' + langcode + '">' + desc + '</a> ';
-            if (window.location.search.indexOf(langcode) != -1) {
+            if (queryurl.indexOf(langcode) != -1) {
                 currentlang += (currentlang !== '' ? ' and ' : '') + desc;
             }
         }
         langel.innerHTML = langhtml;
 
         langel = document.getElementById('lang');
-        langel.innerHTML = currentlang;
+        langel.innerHTML = currentlang || ' all ';
     }
 
-    // Update the HTML
+    // Filter by language
+    var sourcelang = edit.source.substring(1,3);
+    if (queryurl.indexOf('language=') != -1 && queryurl.indexOf(sourcelang) == -1) {
+        //console.log('skipping source', edit.source, sourcelang);
+        return;
+    }
+
+    // Update the list
     var li = document.createElement('li');
     li.innerHTML = formatEdit(edit);
     messageel.appendChild(li);
