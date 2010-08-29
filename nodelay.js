@@ -75,6 +75,7 @@ function setUpEvents(ws) {
     
 }
 
+
 function processEdit(data) {
     try {
         var edit = JSON.parse(data);
@@ -85,7 +86,7 @@ function processEdit(data) {
 
     // Update user
     usercountel = document.getElementById('updates');
-    var userstring = 'Nodelay has ' + edit.usercount + ' user' + (edit.usercount > 1 ? 's!' : '!');
+    var userstring = 'Nodelay has ' + edit.usercount + ' user' + (edit.usercount == 1 ? '!' : 's!');
     usercountel.innerHTML = userstring;
     top.document.title = userstring;
 
@@ -127,7 +128,7 @@ function formatEdit(edit) {
     out += size + '<span class="change">' + edit.change + '<\/span> <span class="comment">' + edit.text + '<\/span>' + time + user;
     var rank = edit.googlerank;
     if (rank != null) {
-        //console.log(rank);
+        //console.log('google rank', rank);
         out = '<span style="opacity:' + ((10 - rank) / 10) + ';">' + out + '</span>';
     }
     return out;
@@ -180,6 +181,7 @@ function relativeDate(then) {
 }        
 
 ///////////////////// Protovis stuff goes here...
+
 
 var visRunning = true;
 var types = [];

@@ -51,7 +51,8 @@ var ircclient = function(languagestr) {
 var freebaseclient = http.createClient(80, 'www.freebase.com')
 
 // Look up a title in freebase, find types
-var lookInFreebase = function(title, returnobj, callback) {
+var lookInFreebase = function(returnobj, callback) {
+    var title = returnobj.title;
     // attempt to look up in freebase
     title = title.replace(/ \([^\)]+\)/, '');
     title = title.replace(/[^\w\d]/g, "_").toLowerCase()
@@ -91,9 +92,10 @@ var lookInFreebase = function(title, returnobj, callback) {
 // HTTP client for google lookups
 var googleclient = http.createClient(80, 'ajax.googleapis.com')
 // Look up a title in freebase, find types
-var lookInGoogle = function(title, returnobj, callback) {
+var lookInGoogle = function(returnobj, callback) {
+    var title = returnobj.title;
     // attempt to look up in freebase
-    var url = "/ajax/services/search/web?v=1.0&q='" + querystring.escape(title) + "'";
+    var url = "/ajax/services/search/web?v=1.0&key=ABQIAAAANJy59z-JG5ojQlRVP3myHBQazc0JSD0GCdkBcD0H4asbApndtBRNVqQ4MvCnn6oQF6lHyWk4Q9S5AA&q='" + querystring.escape(title) + "'";
 
     var request = googleclient.request('GET', url, {'host': 'ajax.googleapis.com','referer': 'http://code.google.com/apis'})
     request.end()
@@ -136,7 +138,8 @@ var lookInGoogle = function(title, returnobj, callback) {
 var wikipediaclient = http.createClient(80, 'en.wikipedia.org')
 
 // Look up a title in freebase, find types
-var lookInWikipedia = function(title, returnobj, callback) {
+var lookInWikipedia = function(returnobj, callback) {
+    var title = returnobj.title;
     // attempt to look up in freebase
     var url = '/w/api.php?action=query&prop=info&inprop=protection|talkid&format=json&titles=' + querystring.escape(title)
 
@@ -169,19 +172,20 @@ var lookInWikipedia = function(title, returnobj, callback) {
 var specialmatcher = /^([\w ]+:)/
 
 // Make requests in parallel (eek!)
-var loadMetadata = function(title, responseobj) {
+var loadMetadata = function(returnobj) {
+    var title = returnobj.title;
     Step(
         function loadData() {
             if (! title.match(specialmatcher)) {
-                lookInFreebase(title, responseobj, this.parallel());
+                lookInFreebase(returnobj, this.parallel());
             }
-            lookInWikipedia(title, responseobj, this.parallel());
-            lookInGoogle(title, responseobj, this.parallel());
+            lookInWikipedia(returnobj, this.parallel());
+            lookInGoogle(returnobj, this.parallel());
         },
         function renderContent(err) {
-            responseobj.usercount = websocket.manager.length + waitingclients.length;
-            var out = JSON.stringify(responseobj)
-            //console.log('finally rendering', JSON.stringify(responseobj));
+            returnobj.usercount = websocket.manager.length + waitingclients.length;
+            var out = JSON.stringify(returnobj)
+            //console.log('finally rendering', JSON.stringify(returnobj));
             websocket.broadcast(out);
             while (waitingclients.length) {
                 var client = waitingclients.shift()
@@ -206,14 +210,13 @@ var myjerk = jerk(function(f) {
                 var matches = rawtext.match(irclinematcher)
                 if (matches.length > 1) {
                     // If we parsed successfully...
-                    var title = matches[1]
-                    var returnobj = { title: title,
+                    var returnobj = { title: matches[1],
                                       flags: matches[2],
                                       url: matches[3],
                                       user: matches[4],
                                       change: matches[5],
                                       text: matches[6] }
-                    loadMetadata(title, returnobj)
+                    loadMetadata(returnobj)
                 }
             }
         }
