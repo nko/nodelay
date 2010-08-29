@@ -27,6 +27,7 @@ p {
 h1#updates {
     margin-top: 0;
     margin-bottom: 10px;
+    max-width: 90%;
 }
 #languages {
     margin: 0px;
