@@ -171,7 +171,7 @@ function formatEdit(edit) {
         // http://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Robot_icon.svg/40px-Robot_icon.svg.png
         user += " <img src=\"images/robot.png\">";
     }
-    out += size + '<span class="change">' + edit.change + '<\/span> <span class="comment">' + edit.text + '<\/span>' + time + user;
+    out += (size ? size : '') + '<span class="change">' + edit.change + '<\/span> <span class="comment">' + edit.text + '<\/span>' + time + user;
     var rank = edit.googlerank;
     if (rank != null) {
         //console.log('google rank', rank);
