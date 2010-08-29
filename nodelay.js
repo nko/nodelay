@@ -30,12 +30,26 @@ window.onload = function() {
 }
 
 // Start polling for JS when WebSocket and Flash aren't available
+function receivePoll(json) {
+    processEdit(json);
+}
+
+var polling = false;
 function startPolling() {
+    polling = true;
     var pollurl = "http://"+document.location.host+'/poll' + (Math.random() * 10000);
     //console.log('startPolling', pollurl);
     var self = this;
+    setTimeout(function() {
+        // check timeout, and start polling again
+        if (polling) {
+            self.startPolling();
+        }
+    },60000)
+
     utils.loadJSLib(pollurl, function() {
         setTimeout(function() {
+            polling = false;
             //console.log('loaded', pollurl);
             self.startPolling();
         },1)
@@ -87,11 +101,12 @@ function processEdit(data) {
 
     // Update user count
     usercountel = document.getElementById('updates');
-    var usercounttext = commaSeparated(edit.usercount) + ' user' + (edit.usercount == 1 ? '' : 's') + ' from ' + commaSeparated(edit.uniqueips) + ' unique address' + (edit.uniqueips == 1 ? '' : 'es');
+    var usercounttext = commaSeparated(edit.usercount) + ' user' + (edit.usercount == 1 ? '' : 's') 
+    var uniqueiptext = ' from ' + commaSeparated(edit.uniqueips) + ' unique address' + (edit.uniqueips == 1 ? '' : 'es');
     var editcounttext = commaSeparated(edit.editcount) + ' edit' + (edit.editcount == 1 ? '' : 's');
-    var userstring = 'Nodelay has ' + usercounttext + ' and has served ' + editcounttext + '!';
+    var userstring = 'Nodelay has served ' + editcounttext + ' to ' + usercounttext + uniqueiptext + '!';
     usercountel.innerHTML = userstring;
-    top.document.title = userstring;
+    top.document.title = usercounttext + ' online now';
 
     var queryurl = document.location.search;
     // Update languages table

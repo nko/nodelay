@@ -220,7 +220,7 @@ var lookInGoogle = function(returnobj, callback) {
     var clientip = uniqueips[Math.floor(Math.random() * uniqueips.length)]
     //console.log('found clientip', clientip, uniqueips);
     var url = "/ajax/services/search/web?v=1.0&key=ABQIAAAANJy59z-JG5ojQlRVP3myHBQazc0JSD0GCdkBcD0H4asbApndtBRNVqQ4MvCnn6oQF6lHyWk4Q9S5AA&userip=" + clientip + "&q='" + querystring.escape(title) + "'";
-    console.log('google request', url);
+    //console.log('google request', url);
 
     var request = googleclient.request('GET', url, {'host': 'ajax.googleapis.com','referer': 'http://code.google.com/apis'})
     request.end()
@@ -236,7 +236,7 @@ var lookInGoogle = function(returnobj, callback) {
 
         // process when the response ends
         response.on('end', function () {
-            console.log('parsing: ' + url + ' for chunk ' + responsedata)
+            //console.log('parsing: ' + url + ' for chunk ' + responsedata)
             try {
                 var data = JSON.parse(responsedata)
                 if (data.responseData && data.responseData.results) {
@@ -320,7 +320,7 @@ var loadMetadata = function(returnobj) {
             while (waitingclients.length) {
                 var client = waitingclients.shift()
                 // TODO: don't use a direct callback
-                client("processEdit('" + out.replace(/'/g,"\\'").replace(/"/g,'\\"') + "')")
+                client("receivePoll('" + out.replace(/'/g,"\\'").replace(/"/g,'\\"') + "')")
             }
             waitingclients = [];
         }
