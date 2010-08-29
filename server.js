@@ -8,7 +8,26 @@ var net = require('net'),
     colors = require('./colors'),
     Step = require('./lib/step')
 
-var languages = {English: 'en', German: 'de'}
+var languages = {
+    English: 'en'
+    ,German: 'de'
+    ,Arabic: 'ar'
+    ,Finnish: 'fi'
+    ,French: 'fr'
+    ,Italian: 'it'
+    ,Japanese: 'jp'
+    ,Polish: 'pl'
+    ,Russian: 'ru'
+    ,Greek: 'el'
+    ,Croatian: 'hr'
+    ,Portuguese: 'pt'
+    ,Czech: 'cz'
+    ,Spanish: 'es'
+    ,Danish: 'da'
+    ,Icelandic: 'is'
+    ,Dutch: 'nl'
+    ,Swedish: 'sv'
+}
 
 // for serving static files we're using http://github.com/cloudhead/node-static
 var fileServer = new stat.Server()
