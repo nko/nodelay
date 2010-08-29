@@ -15,7 +15,7 @@ var languages = {
     ,Finnish: 'fi'
     ,French: 'fr'
     ,Italian: 'it'
-    ,Japanese: 'jp'
+// no good?    ,Japanese: 'jp'
     ,Polish: 'pl'
     ,Russian: 'ru'
     ,Greek: 'el'
