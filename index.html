@@ -72,6 +72,7 @@
         
         function formatEdit(edit) {
             var out = "<a href=\""+edit.url+"\">"+edit.title+"<\/a> " + edit.change + " " + edit.text
+            // Add types from metaweb
             if (edit.types) {
                 var typetext = [];
                 for (var i = 0, l = edit.types.length; i < l; i++) {
@@ -79,6 +80,13 @@
                     typetext.push(type.text);
                 }
                 out += ' Types: ' + typetext.join(', ');
+            }
+            // Add wikipedia metadata
+            if (edit.metadata) {
+                for (var pageid in edit.metadata.pages) {
+                    var page = edit.metadata.pages[pageid];
+                    out += ' Modified: ' + page.touched + ' Edit counter: ' + page.counter + ' Size: ' + page.length;
+                }
             }
             return out;
         }
