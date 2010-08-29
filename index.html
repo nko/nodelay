@@ -23,10 +23,9 @@
 
             url = "ws://"+document.location.host+":8080";
             
-            messages = document.getElementById('messages');
-            status = document.getElementById('status');
-            
-            status.innerHTML = "Connecting...";
+            messagesel = document.getElementById('messages');
+            statusel = document.getElementById('status');
+            statusel.innerHTML = "Connecting...";
             
             var ws = new WebSocket(url);
             setUpEvents(ws);
@@ -38,9 +37,9 @@
         function setUpEvents(ws) {
         
             ws.onclose = function() {
-                status.innerHTML = "WebSocket closed, retrying in " + Math.round(retryWait/1000) + " seconds!";                
+                statusel.innerHTML = "WebSocket closed, retrying in " + Math.round(retryWait/1000) + " seconds!";                
                 setTimeout(function() {
-                    status.innerHTML = "Reconnecting...";                
+                    statusel.innerHTML = "Reconnecting...";                
                     var retryWs = new WebSocket(url);
                     setUpEvents(retryWs);
                 }, retryWait);
@@ -49,25 +48,25 @@
             };
 
             ws.onerror = function() {
-                status.innerHTML = "Error with WebSocket, try refreshing?";
+                statusel.innerHTML = "Error with WebSocket, try refreshing?";
             };
 
             ws.onopen = function() {
-                status.innerHTML = "Connected! Waiting for messages...";
+                statusel.innerHTML = "Connected! Waiting for messages...";
                 retryWait = minRetryWait;
             };
             
             ws.onmessage = function(evt) {
-                if (status.innerHTML == "Connected! Waiting for messages...") {
-                    status.innerHTML = "";
+                if (statusel.innerHTML == "Connected! Waiting for messages...") {
+                    statusel.innerHTML = "";
                 }            
                 var edit = JSON.parse(evt.data);
                 processEdit(edit);                
                 var li = document.createElement('li');
                 li.innerHTML = formatEdit(edit);
-                messages.appendChild(li);
-                if (messages.children.length > 20) {
-                    messages.removeChild(messages.firstChild);
+                messagesel.appendChild(li);
+                if (messagesel.children.length > 20) {
+                    messagesel.removeChild(messagesel.firstChild);
                 }
             }
             
