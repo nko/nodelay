@@ -76,6 +76,9 @@ try {
                     }
                 })
             }
+            if (data.categorycounter) {
+                categorycounter = data.categorycounter;
+            }
         }
         //console.log('triggering save in 10 seconds')
         setTimeout(saveCounters, 10000)
@@ -89,7 +92,8 @@ function saveCounters() {
     var toSave = JSON.stringify({ 
         time: Date.now(),
         numEdits: numEdits,
-        uniqueips: uniqueips
+        uniqueips: uniqueips,
+        categorycounter: categorycounter
     })
     var writeStream = fs.createWriteStream('counters.json', {
         flags: 'w+',
