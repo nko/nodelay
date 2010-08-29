@@ -77,7 +77,7 @@ var lookInGoogle = function(title, returnobj, callback) {
     // attempt to look up in freebase
     var url = "/ajax/services/search/web?v=1.0&q='" + querystring.escape(title) + "'";
 
-    var request = googleclient.request('GET', url, {'host': 'ajax.googleapis.com'})
+    var request = googleclient.request('GET', url, {'host': 'ajax.googleapis.com','referer': 'http://code.google.com/apis'})
     request.end()
 
     request.on('response', function (response) {

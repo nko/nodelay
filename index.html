@@ -23,7 +23,7 @@
 
             url = "ws://"+document.location.host+":8080";
             
-            messagesel = document.getElementById('messages');
+            messageel = document.getElementById('messages');
             statusel = document.getElementById('status');
             statusel.innerHTML = "Connecting...";
             
@@ -64,9 +64,9 @@
                 processEdit(edit);                
                 var li = document.createElement('li');
                 li.innerHTML = formatEdit(edit);
-                messagesel.appendChild(li);
-                if (messagesel.children.length > 20) {
-                    messagesel.removeChild(messagesel.firstChild);
+                messageel.appendChild(li);
+                if (messageel.children.length > 20) {
+                    messageel.removeChild(messageel.firstChild);
                 }
             }
             
@@ -92,6 +92,9 @@
                     out += '. Modified: <span class="time">' + relativeDate(parseDate(page.touched)) + '<\/span>, Views: ' + page.counter + ', Size: ' + page.length;
                 }
             }
+            var rank = edit.googlerank;
+            if (rank == null) rank = 8;
+            out = '<span style="opacity:' + ((10 - rank) / 10) + ';">' + out + '</span>';
             return out;
         }
 
