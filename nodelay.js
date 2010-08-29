@@ -184,6 +184,7 @@ function relativeDate(then) {
 
 var visRunning = true;
 var userNodes = {};
+var types = [ "User", "Article", "Talk:", "Category:", "Wikipedia:", "File:", "Template:", "User:", "User talk:", "Portal:" ];
 
 function updateVis(edit) {
 
@@ -206,10 +207,10 @@ function updateVis(edit) {
     var pos = userNode ? randomOffset(userNode) : randomOuter();
      
     var group = 1; // normal Articles
-    var prefixes = [ "Talk:", "Category:", "Wikipedia:", "File:", "Template:", "User:", "User talk:", "Portal:" ];
-    for (var i = 0; i < prefixes.length; i++) {
-        if (edit.title.indexOf(prefixes[i]) == 0) {
-            group = 2 + i;
+    // skip first two, they aren't prefixes
+    for (var i = 2; i < types.length; i++) {
+        if (edit.title.indexOf(types[i]) == 0) {
+            group = i;
             break;            
         }
     }
@@ -343,7 +344,28 @@ function initVis() {
         return d.nodeName;
     });
     
+    
+    var reverseTypes = types.slice();
+    reverseTypes.reverse();
+    
+    // Add the color bars for the color legend
+    vis.add(pv.Dot)
+        .data(reverseTypes)
+        .bottom(function(d) { return 15 + this.index * 15 })
+        .size(15)
+        .left(15)
+        .fillStyle(function(d) { return colors(types.length - 1 - this.index) })
+        .strokeStyle(function(d) { return this.index == types.length - 1 ? 'white' : null })
+        .lineWidth(1)
+      .anchor("right").add(pv.Label)
+        .textAlign("left")
+        .text(function(d) { return d })
+        .textStyle(function(d) { return this.index == types.length - 1 ? 'white' : colors(types.length - 1 - this.index).brighter() });
+    
+        
     vis.render();
+    
+    
     
     var resizeTimer = 0;
     window.onresize = function() {
