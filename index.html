@@ -108,7 +108,7 @@
             }
             var rank = edit.googlerank;
             if (rank == null) rank = 8;
-            out = '<span style="opacity:' + ((10 - rank) / 10) + ';">' + out + '</span>';
+            out = '<span style="opacity:' + ((10 - rank) / 10) + ';">' + out + '<\/span>';
             return out;
         }
 
@@ -176,6 +176,8 @@
                 groupNodes = [];
                 
             if (edit.types && edit.types.length > 0) {
+                var x = randomX(),
+                    y = randomY();
                 for (var i = 0; i < edit.types.length; i++) {
                     var type = edit.types[i];
                     if (!(type.id in typeIndex) || !(type.id in groupNodes)) {
@@ -187,8 +189,8 @@
                             group: types.length, 
                             type: type.id, 
                             nodeIndex: nodes.length, 
-                            x: randomX(), 
-                            y: randomY() 
+                            x: x + Math.random(), 
+                            y: y + Math.random() 
                         };
                         groupNodes[type.id] = groupNode;
                         nodes.push(groupNode);
@@ -198,7 +200,7 @@
                 group = typeIndex[edit.types[0].id];
             }
             
-            var pos = groupNode ? randomOffset(groupNode) : randomOuter();
+            var pos = groupNodes.length > 0 ? randomOffset(groupNodes[0]) : randomOuter();
                 
             var node = { 
                 nodeName: edit.title,
@@ -279,18 +281,18 @@
             var a = Math.random() * 2 * Math.PI;
             var r = (0.5+Math.random()/2) * Math.min(w,h)/2;
             return {
-                x: w/2 + r*Math.cos(a),
-                y: h/2 + r*Math.sin(a)
+                x: w/2 + (w/3)*Math.cos(a),
+                y: h/2 + (h/3)*Math.sin(a)
             }
         }
         
         function randomX() {
             var w = document.getElementById('vis').offsetWidth;
-            return w/2 + (Math.random() - 0.5) * w/4;
+            return w/2 + (2.0 * (Math.random() - 0.5)) * w/3;
         }
         function randomY() {
             var h = document.getElementById('vis').offsetHeight;
-            return h/2 + (Math.random() - 0.5) * h/4;
+            return h/2 + (2.0 * (Math.random() - 0.5)) * h/3;
         }
         
         var force, vis;
@@ -315,7 +317,8 @@
                 .links(function() { return links })
                 .bound(true)
                 .springConstant(0.2)
-                .chargeConstant(-5);
+                .chargeConstant(-5)
+                .iterations(null); // continuous
             
             force.link.add(pv.Line);
             
@@ -326,7 +329,7 @@
                     return 1.0 + (ageMult*25.0);// + (linkSize); 
                 })
                 .fillStyle(function(d) { return d.fix ? "brown" : colors(d.group) })
-                .strokeStyle(function(d) { return d.type ? 'white' : this.fillStyle().brighter() })
+                .strokeStyle(function(d) { return d.type ? 'white' : null })
                 .lineWidth(1)
                 .title(function(d) { return d.nodeName })
                 .event("mousedown", pv.Behavior.drag())
