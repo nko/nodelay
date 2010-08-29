@@ -49,7 +49,7 @@ var languages = {
     ,'Waray-Waray': 'war'
 }
 
-// TODO: load counters
+// load counters
 
 try {
     var readStream = fs.createReadStream('counters.json', {
@@ -58,18 +58,26 @@ try {
     })
     var readBuffer = ''
     readStream.on('data', function(data) {
-        console.log('readStream data')
-        console.log('got "' + data + '"')
+        //console.log('readStream data')
+        //console.log('got "' + data + '"')
         readBuffer += data
     })
     readStream.on('end', function() {
-        console.log('readStream end')
-        console.log('got "' + readBuffer + '"')
+        //console.log('readStream end')
+        //console.log('got "' + readBuffer + '"')
         if (readBuffer.length > 0) {
             var data = JSON.parse(readBuffer);
             numEdits += (data.numEdits || 0)
+            if (data.uniqueips && data.uniqueips.length) {
+                data.uniqueips.forEach(function(ip) {
+                    if (!(ip in uniqueiphash)) {
+                        uniqueiphash[ip] = true;
+                        uniqueips.push(ip);
+                    }
+                })
+            }
         }
-        console.log('triggering save in 10 seconds')
+        //console.log('triggering save in 10 seconds')
         setTimeout(saveCounters, 10000)
     })
 }
@@ -78,16 +86,20 @@ catch(e) {
 }
 
 function saveCounters() {
-    var toSave = JSON.stringify({ numEdits: numEdits })
+    var toSave = JSON.stringify({ 
+        time: Date.now(),
+        numEdits: numEdits,
+        uniqueips: uniqueips
+    })
     var writeStream = fs.createWriteStream('counters.json', {
         flags: 'w+',
         encoding: 'utf8'
     })
     writeStream.on('close', function() {
-        console.log('writeSteam closed');
+        //console.log('writeSteam closed');
         setTimeout(saveCounters, 10000)
     });
-    console.log('writing "' + toSave + '" and closing');
+    //console.log('writing "' + toSave + '" and closing');
     var written = writeStream.write(toSave)
     if (written) {
         writeStream.end()
