@@ -15,7 +15,7 @@ var languages = {
     ,Finnish: 'fi'
     ,French: 'fr'
     ,Italian: 'it'
-// no good?    ,Japanese: 'jp'
+    ,Japanese: 'ja'
     ,Polish: 'pl'
     ,Russian: 'ru'
     ,Greek: 'el'
@@ -246,7 +246,14 @@ var loadMetadata = function(returnobj) {
 // See: http://meta.wikimedia.org/wiki/Help:Recent_changes#Understanding_Recent_Changes
 var irclinematcher = /^\[\[(.*)\]\] (.?) (http\S+) \* (.*) \* \(([+-]\d+)\) (.*)$/
 
-var myjerk = jerk(function(f) {
+var channels = [];
+
+for (var lang in languages) {
+    var langcode = languages[lang];
+    channels.push('#' + langcode + '.wikipedia');
+}
+
+return jerk(function(f) {
     f.watch_for(/.*/, function(message) {
         if (message.user === 'rc') {
             var rawtext = colors.removeFormattingAndColors(String(message.text))
@@ -272,9 +279,8 @@ var myjerk = jerk(function(f) {
 }).connect({
     server: 'irc.wikimedia.org'
     ,nick: 'nodelay-'+(new Date().getTime()).toString(16)
-    ,channels: ['#' + lang + '.wikipedia']
+    ,channels: channels
 })
-return myjerk;
 }
 
 var thejerk = ircclient('en');
