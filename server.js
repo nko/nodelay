@@ -146,8 +146,12 @@ http.createServer(function (req, res) {
     // this path should be more interesting
     // for now we'll just delegate everything to our fileServer:
 
+    var page = 'index.html';
+    if (req.url.match(/\?viz=/)) {
+        page = req.url.match(/\?viz=(.+)$/)
+    }
     // do the right thing with the root:
-    if (req.url === '/') req.url = '/index.html'
+    if (req.url === '/') req.url = '/' + page
 
     req.addListener('end', function() {
         if (! uniqueiphash[req.socket.remoteAddress]) {
@@ -175,7 +179,7 @@ http.createServer(function (req, res) {
                     }
                 }
                 
-                req.url = '/index.html?language=' + langstr
+                req.url = '/' + page + '?language=' + langstr
                 fileServer.serve(req,res)
             } else {
                 writeResponse(res, JSON.stringify(languages))
