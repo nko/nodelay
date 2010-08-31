@@ -4,6 +4,7 @@ var net = require('net'),
     fs = require('fs'),
     url = require('url'),
     stat = require('./lib/node-static'),
+    stat = require('./lib/node-static'),
     ws = require('./lib/ws'),
     jerk = require('./lib/jerk/lib/jerk'),
     colors = require('./colors'),
@@ -427,5 +428,14 @@ var netserver = net.createServer(function(socket) {
     socket.write('</cross-domain-policy>\n')
     socket.end()
 }).listen(843)
+
+process.on('exit', function() {
+    saveCounters();
+    process.exit(0);
+})
+
+process.on('err', function() {
+    saveCounters();
+})
 
 console.log('Server running!\n')
