@@ -6,7 +6,7 @@ var net = require('net'),
     stat = require('./lib/node-static'),
     stat = require('./lib/node-static'),
     ws = require('./lib/ws'),
-    jerk = require('./lib/jerk/lib/jerk'),
+    IRC = require('./lib/irc/lib/irc'),
     colors = require('./colors'),
     Step = require('./lib/step')
 
@@ -87,8 +87,7 @@ try {
         //console.log('triggering save in 10 seconds')
         setTimeout(saveCounters, 10000)
     })
-}
-catch(e) {
+} catch(e) {
     console.log('persistence error' + e);
 }
 
@@ -112,8 +111,7 @@ function saveCounters() {
     var written = writeStream.write(toSave)
     if (written) {
         writeStream.end()
-    }
-    else {
+    } else {
         writeStream.on('drain', function() {
             writeStream.end()
         });
@@ -171,12 +169,12 @@ http.createServer(function (req, res) {
             var language = req.url.match(/\?language=([\w,]+)$/)
             if (language && language.length > 1) {
                 var langstr = language[1];
-                if (thejerk && thejerk.join) {
+                if (wikiclient && wikiclient.join) {
                     var langlist = langstr.split(',');
                     for (var i = 0, l = langlist.length; i < l; i++) {
                         var onelang = langlist[i];
                         //console.log('found language', onelang)
-                        thejerk.join('#' + onelang + '.wikipedia');
+                        wikiclient.join('#' + onelang + '.wikipedia');
                     }
                 }
                 
@@ -196,192 +194,184 @@ var websocket = ws.createServer();
 websocket.listen(8080);
 
 var ircclient = function() {
-// HTTP client for freebase lookups
-var freebaseclient = http.createClient(80, 'www.freebase.com')
+    // HTTP client for freebase lookups
+    var freebaseclient = http.createClient(80, 'www.freebase.com')
 
-// Look up a title in freebase, find types
-var lookInFreebase = function(returnobj, callback) {
-    var title = returnobj.title;
-    // attempt to look up in freebase
-    title = title.replace(/ \([^\)]+\)/, '');
-    title = title.replace(/[^\w\d]/g, "_").toLowerCase()
-    var lang = returnobj.source.substring(1,3);
-    var url = '/experimental/topic/basic?id=/' + lang + '/' + title
-    //console.log('lookInFreebase', url, returnobj.source);
+    // Look up a title in freebase, find types
+    var lookInFreebase = function(returnobj, callback) {
+        var title = returnobj.title;
+        // attempt to look up in freebase
+        title = title.replace(/ \([^\)]+\)/, '');
+        title = title.replace(/[^\w\d]/g, "_").toLowerCase()
+        var lang = returnobj.source.substring(1,3);
+        var url = '/experimental/topic/basic?id=/' + lang + '/' + title
+        //console.log('lookInFreebase', url, returnobj.source);
 
-    var request = freebaseclient.request('GET', url, {'host': 'www.freebase.com','user-agent': 'nodelay'})
-    request.end()
+        var request = freebaseclient.request('GET', url, {'host': 'www.freebase.com','user-agent': 'nodelay'})
+        request.end()
 
-    request.on('response', function (response) {
-        response.setEncoding('utf8')
+        request.on('response', function (response) {
+            response.setEncoding('utf8')
 
-        var responsedata = ''
-        response.on('data', function (chunk) {
-            // Build up response data
-            responsedata += chunk
-        })
+            var responsedata = ''
+            response.on('data', function (chunk) {
+                // Build up response data
+                responsedata += chunk
+            })
 
-        // process when the response ends
-        response.on('end', function () {
-            //console.log('parsing: ' + url + ' for chunk ' + responsedata)
-            var freebase = JSON.parse(responsedata)
-            for (var id in freebase) {
-                var responseobj = freebase[id]
-                if (responseobj.status === '200 OK') {
-                    returnobj.freebase = url
-                    if (responseobj.result.type.length) {
-                        returnobj.types = responseobj.result.type
-                        // Update category counter
-                        for (var i in returnobj.types) {
-                            var type = returnobj.types[i];
-                            if (categorycounter[type.id] == null) {
-                                categorycounter[type.id] = 1;
-                            } else {
-                                categorycounter[type.id]++;
+            // process when the response ends
+            response.on('end', function () {
+                //console.log('parsing: ' + url + ' for chunk ' + responsedata)
+                var freebase = JSON.parse(responsedata)
+                for (var id in freebase) {
+                    var responseobj = freebase[id]
+                    if (responseobj.status === '200 OK') {
+                        returnobj.freebase = url
+                        if (responseobj.result.type.length) {
+                            returnobj.types = responseobj.result.type
+                            // Update category counter
+                            for (var i in returnobj.types) {
+                                var type = returnobj.types[i];
+                                if (categorycounter[type.id] == null) {
+                                    categorycounter[type.id] = 1;
+                                } else {
+                                    categorycounter[type.id]++;
+                                }
+                                categorynamebyid[type.id] = type.text;
+                                //console.log('found type', JSON.stringify(categorycounter));
                             }
-                            categorynamebyid[type.id] = type.text;
-                            //console.log('found type', JSON.stringify(categorycounter));
                         }
                     }
                 }
-            }
 
-            callback();
+                callback();
+            })
         })
-    })
-}
+    }
 
-// HTTP client for google lookups
-var googleclient = http.createClient(80, 'ajax.googleapis.com')
-// Look up a title in freebase, find types
-var lookInGoogle = function(returnobj, callback) {
-    var title = returnobj.title;
-    // attempt to look up in freebase
-    var clientip = uniqueips[Math.floor(Math.random() * uniqueips.length)]
-    //console.log('found clientip', clientip, uniqueips);
-    var url = "/ajax/services/search/web?v=1.0&key=ABQIAAAANJy59z-JG5ojQlRVP3myHBQazc0JSD0GCdkBcD0H4asbApndtBRNVqQ4MvCnn6oQF6lHyWk4Q9S5AA&userip=" + clientip + "&q='" + querystring.escape(title) + "'";
-    //console.log('google request', url);
+    // HTTP client for google lookups
+    var googleclient = http.createClient(80, 'ajax.googleapis.com')
+    // Look up a title in freebase, find types
+    var lookInGoogle = function(returnobj, callback) {
+        var title = returnobj.title;
+        // attempt to look up in freebase
+        var clientip = uniqueips[Math.floor(Math.random() * uniqueips.length)]
+        //console.log('found clientip', clientip, uniqueips);
+        var url = "/ajax/services/search/web?v=1.0&key=ABQIAAAANJy59z-JG5ojQlRVP3myHBQazc0JSD0GCdkBcD0H4asbApndtBRNVqQ4MvCnn6oQF6lHyWk4Q9S5AA&userip=" + clientip + "&q='" + querystring.escape(title) + "'";
+        //console.log('google request', url);
 
-    var request = googleclient.request('GET', url, {'host': 'ajax.googleapis.com','referer': 'http://code.google.com/apis'})
-    request.end()
+        var request = googleclient.request('GET', url, {'host': 'ajax.googleapis.com','referer': 'http://code.google.com/apis'})
+        request.end()
 
-    request.on('response', function (response) {
-        response.setEncoding('utf8')
+        request.on('response', function (response) {
+            response.setEncoding('utf8')
 
-        var responsedata = ''
-        response.on('data', function (chunk) {
-            // Build up response data
-            responsedata += chunk
-        })
+            var responsedata = ''
+            response.on('data', function (chunk) {
+                // Build up response data
+                responsedata += chunk
+            })
 
-        // process when the response ends
-        response.on('end', function () {
-            //console.log('parsing: ' + url + ' for chunk ' + responsedata)
-            try {
-                var data = JSON.parse(responsedata)
-                if (data.responseData && data.responseData.results) {
-                    var results = data.responseData.results;
-                    for (var i = 0, l = results.length; i < l; i++) {
-                        var url = results[i].unescapedUrl;
-                        if (url.match(/wikipedia.org\/wiki/)) {
-                            //console.log('pagerank for', url, i);
-                            returnobj.googlerank = i;
-                            break;
+            // process when the response ends
+            response.on('end', function () {
+                //console.log('parsing: ' + url + ' for chunk ' + responsedata)
+                try {
+                    var data = JSON.parse(responsedata)
+                    if (data.responseData && data.responseData.results) {
+                        var results = data.responseData.results;
+                        for (var i = 0, l = results.length; i < l; i++) {
+                            var url = results[i].unescapedUrl;
+                            if (url.match(/wikipedia.org\/wiki/)) {
+                                //console.log('pagerank for', url, i);
+                                returnobj.googlerank = i;
+                                break;
+                            }
+
                         }
-
                     }
+                } catch (e) {
+                    //console.log('bad request: ' + e + ', ' + url + ' for chunk ' + responsedata)
+
                 }
-            } catch (e) {
-                //console.log('bad request: ' + e + ', ' + url + ' for chunk ' + responsedata)
-
-            }
-            callback();
+                callback();
+            })
         })
-    })
-}
+    }
 
-// HTTP client for wikipedia metadata lookups
-var wikipediaclient = http.createClient(80, 'en.wikipedia.org')
+    // HTTP client for wikipedia metadata lookups
+    var wikipediaclient = http.createClient(80, 'en.wikipedia.org')
 
-// Look up a title in freebase, find types
-var lookInWikipedia = function(returnobj, callback) {
-    var title = returnobj.title;
-    // attempt to look up in freebase
-    var url = '/w/api.php?action=query&prop=info&inprop=protection|talkid&format=json&titles=' + querystring.escape(title)
+    // Look up a title in freebase, find types
+    var lookInWikipedia = function(returnobj, callback) {
+        var title = returnobj.title;
+        // attempt to look up in freebase
+        var url = '/w/api.php?action=query&prop=info&inprop=protection|talkid&format=json&titles=' + querystring.escape(title)
 
-    var request = wikipediaclient.request('GET', url, {'host': 'en.wikipedia.org', 'user-agent': 'nodelay'})
-    request.end()
+        var request = wikipediaclient.request('GET', url, {'host': 'en.wikipedia.org', 'user-agent': 'nodelay'})
+        request.end()
 
-    request.on('response', function (response) {
-        response.setEncoding('utf8')
+        request.on('response', function (response) {
+            response.setEncoding('utf8')
 
-        var responsedata = ''
-        response.on('data', function (chunk) {
-            // Build up response data
-            responsedata += chunk
+            var responsedata = ''
+            response.on('data', function (chunk) {
+                // Build up response data
+                responsedata += chunk
+            })
+
+            // process when the response ends
+            response.on('end', function () {
+                //console.log('parsing: ' + url + ' for chunk ' + responsedata)
+                var metadata = JSON.parse(responsedata)
+                if (metadata.query) {
+                    returnobj.metadata = metadata.query;
+                }
+
+                callback();
+            })
         })
+    }
 
-        // process when the response ends
-        response.on('end', function () {
-            //console.log('parsing: ' + url + ' for chunk ' + responsedata)
-            var metadata = JSON.parse(responsedata)
-            if (metadata.query) {
-                returnobj.metadata = metadata.query;
+    // Match wikipedia titles that are 'special', e.g. 'User talk:...'
+    var specialmatcher = /^([\w ]+:)/
+
+    // Make requests in parallel (eek!)
+    var loadMetadata = function(returnobj) {
+        var title = returnobj.title;
+        Step(
+            function loadData() {
+                if (! title.match(specialmatcher)) {
+                    lookInFreebase(returnobj, this.parallel());
+                }
+                lookInWikipedia(returnobj, this.parallel());
+                lookInGoogle(returnobj, this.parallel());
+            },
+            function renderContent(err) {
+                numEdits++;
+                returnobj.usercount = websocket.manager.length + waitingclients.length;
+                returnobj.editcount = numEdits;
+                returnobj.uniqueips = uniqueips.length;
+                returnobj.categorycounter = categorycounter;
+                returnobj.categorynames = categorynamebyid;
+                var out = JSON.stringify(returnobj)
+                //console.log('finally rendering', JSON.stringify(returnobj));
+                websocket.broadcast(out);
+                // broadcast to long-poll clients
+                while (waitingclients.length) {
+                    var client = waitingclients.shift()
+                    // TODO: don't use a direct callback
+                    client("receivePoll('" + out.replace(/'/g,"\\'").replace(/"/g,'\\"') + "')")
+                }
+                waitingclients = [];
             }
+        );
+    }
 
-            callback();
-        })
-    })
-}
+    // Parse out chunks from the wikipedia IRC channel
+    // See: http://meta.wikimedia.org/wiki/Help:Recent_changes#Understanding_Recent_Changes
+    var irclinematcher = /^\[\[(.*)\]\] (.?) (http\S+) \* (.*) \* \(([+-]\d+)\) (.*)$/
 
-// Match wikipedia titles that are 'special', e.g. 'User talk:...'
-var specialmatcher = /^([\w ]+:)/
-
-// Make requests in parallel (eek!)
-var loadMetadata = function(returnobj) {
-    var title = returnobj.title;
-    Step(
-        function loadData() {
-            if (! title.match(specialmatcher)) {
-                lookInFreebase(returnobj, this.parallel());
-            }
-            lookInWikipedia(returnobj, this.parallel());
-            lookInGoogle(returnobj, this.parallel());
-        },
-        function renderContent(err) {
-            numEdits++;
-            returnobj.usercount = websocket.manager.length + waitingclients.length;
-            returnobj.editcount = numEdits;
-            returnobj.uniqueips = uniqueips.length;
-            returnobj.categorycounter = categorycounter;
-            returnobj.categorynames = categorynamebyid;
-            var out = JSON.stringify(returnobj)
-            //console.log('finally rendering', JSON.stringify(returnobj));
-            websocket.broadcast(out);
-            // broadcast to long-poll clients
-            while (waitingclients.length) {
-                var client = waitingclients.shift()
-                // TODO: don't use a direct callback
-                client("receivePoll('" + out.replace(/'/g,"\\'").replace(/"/g,'\\"') + "')")
-            }
-            waitingclients = [];
-        }
-    );
-}
-
-// Parse out chunks from the wikipedia IRC channel
-// See: http://meta.wikimedia.org/wiki/Help:Recent_changes#Understanding_Recent_Changes
-var irclinematcher = /^\[\[(.*)\]\] (.?) (http\S+) \* (.*) \* \(([+-]\d+)\) (.*)$/
-
-// Connect to all channels in the languages hash
-var channels = [];
-for (var lang in languages) {
-    var langcode = languages[lang];
-    channels.push('#' + langcode + '.wikipedia');
-}
-
-return jerk(function(f) {
-    f.watch_for(/.*/, function(message) {
+    var parsemessage = function(message) {
         if (message.user === 'rc') {
             var rawtext = colors.removeFormattingAndColors(String(message.text))
             // handle edits
@@ -390,27 +380,63 @@ return jerk(function(f) {
                 if (matches.length > 1) {
                     // If we parsed successfully...
                     var returnobj = { title: matches[1]
-                                      ,flags: matches[2]
-                                      ,url: matches[3]
-                                      ,user: matches[4]
-                                      ,change: matches[5]
-                                      ,text: matches[6]
-                                      ,languages: languages
-                                      ,source: message.source
+                                    ,flags: matches[2]
+                                    ,url: matches[3]
+                                    ,user: matches[4]
+                                    ,change: matches[5]
+                                    ,text: matches[6]
+                                    ,source: message.source
                                     }
                     loadMetadata(returnobj)
                 }
             }
         }
-    })
-}).connect({
-    server: 'irc.wikimedia.org'
-    ,nick: 'nodelay-'+(new Date().getTime()).toString(16)
-    ,channels: channels
-})
+    }
+
+    return function(config) {
+        var bot = new IRC(config);
+        bot.addListener('privmsg', function (rawmessage) {
+            //console.log('got message from', config.server, JSON.stringify(rawmessage));
+            parsemessage({
+                user: rawmessage.person.nick
+                ,source: rawmessage.params[0]
+                ,text: rawmessage.params[1]
+            })
+        })
+        bot.connect(function() {
+            //console.log('connected to', config.server);
+            var channels = config.channels;
+            var server = config.server;
+            setTimeout(function() {
+                for (var i = 0, l = config.channels.length; i < l; i++) {
+                    var chan = config.channels[i];
+                    //console.log('joining', chan, 'on', config.server);
+                    bot.join(chan);
+                }
+            }, 15000);
+        })
+        return bot;
+    }
+}();
+
+// Connect to all channels in the languages hash
+var wikipediachannels = [];
+for (var lang in languages) {
+    var langcode = languages[lang];
+    wikipediachannels.push('#' + langcode + '.wikipedia');
 }
 
-var thejerk = ircclient('en');
+var wikiclient = new ircclient({
+    server: 'irc.wikimedia.org'
+    ,nick: 'nodelay-'+(new Date().getTime()).toString(16)
+    ,channels: wikipediachannels
+});
+
+var olclient = new ircclient({
+    server: 'irc.freenode.org'
+    ,nick: 'nodelay-'+(new Date().getTime()).toString(16) + '2'
+    ,channels: ['#openlibrary_rc']
+});
 
 // this should allow the Flash websocket to connect to us in Firefox 3.6 and friends
 // I found this example file at http://github.com/waywardmonkeys/netty-flash-crossdomain-policy-server/blob/master/sample_flash_policy.xml
@@ -436,6 +462,13 @@ process.on('exit', function() {
 
 process.on('err', function() {
     saveCounters();
+})
+
+process.on('uncaughtException', function(error) {
+    saveCounters()
+    // From the v8 APIs, see node/src/node.js line 720
+    Error.captureStackTrace(error)
+    console.log('uncaughtException', error.stack);
 })
 
 console.log('Server running!\n')
