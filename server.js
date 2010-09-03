@@ -53,11 +53,13 @@ var languages = {
 var uniqueips = [];
 var uniqueiphash = {};
 var numEdits = 0;
+var categorycounter = {};
+var categorynames = {};
 
 // load counters
 try {
     var readBuffer = fs.readFileSync('counters.json');
-    //console.log('read persistent data', readBuffer);
+    //console.log('data loaded');
     var data = JSON.parse(readBuffer)
     numEdits += (data.numEdits || 0)
     if (data.uniqueips && data.uniqueips.length) {
@@ -69,35 +71,32 @@ try {
         })
     }
     if (data.categorycounter) {
-            categorycounter = data.categorycounter
+        categorycounter = data.categorycounter
     }
-    if (data.categorynamebyid) {
-        categorynamebyid = data.categorynamebyid
+    if (data.categorynames) {
+        categorynames = data.categorynames
     }
 } catch(e) {
     console.log('persistence read error' + e);
 }
 
 function saveCounters() {
-    var toSave = JSON.stringify({ 
-        time: Date.now(),
-        numEdits: numEdits,
-        uniqueips: uniqueips,
-        categorycounter: categorycounter,
-        categorynamebyid: categorynamebyid
-    })
-
     try {
+        var toSave = JSON.stringify({ 
+            time: Date.now(),
+            numEdits: numEdits,
+            uniqueips: uniqueips,
+            categorycounter: categorycounter,
+            categorynames: categorynames
+        })
+
         fs.writeFileSync('counters.json', toSave)
-        //console.log('wrote counters persistent data');
+        //console.log('data saved');
     } catch (e) {
         console.log('persistence write error' + e);
     }
 }
-setInterval(function() {saveCounters()}, 1000)
-
-var categorycounter = {};
-var categorynamebyid = {};
+setInterval(function() {saveCounters()}, 10000)
 
 // for serving static files we're using http://github.com/cloudhead/node-static
 var fileServer = new stat.Server()
@@ -157,6 +156,8 @@ http.createServer(function (req, res) {
             } else {
                 writeResponse(res, JSON.stringify(languages))
             }
+        } else if (req.url.match(/^\/categories/)) {
+            writeResponse(res, JSON.stringify({categorycounter: categorycounter, categorynames: categorynames}))
         } else {
             fileServer.serve(req,res)
         }
@@ -211,7 +212,7 @@ var ircclient = function() {
                                 } else {
                                     categorycounter[type.id]++;
                                 }
-                                categorynamebyid[type.id] = type.text;
+                                categorynames[type.id] = type.text;
                                 //console.log('found type', JSON.stringify(categorycounter));
                             }
                         }
@@ -325,8 +326,6 @@ var ircclient = function() {
                 returnobj.usercount = websocket && websocket.manager && websocket.manager.length + waitingclients.length;
                 returnobj.editcount = numEdits;
                 returnobj.uniqueips = uniqueips.length;
-                returnobj.categorycounter = categorycounter;
-                returnobj.categorynames = categorynamebyid;
                 var out = JSON.stringify(returnobj)
                 //console.log('finally rendering', JSON.stringify(returnobj));
                 websocket.broadcast(out);
@@ -431,11 +430,17 @@ var netserver = net.createServer(function(socket) {
 
 process.on('exit', function() {
     saveCounters();
-    process.exit(0);
+    //console.log('exit');
 })
 
 process.on('err', function() {
+    //console.log('err');
     saveCounters();
+})
+
+process.on('SIGINT', function(e) {
+    //console.log('SIGINT');
+    process.exit(0);
 })
 
 process.on('uncaughtException', function(error) {
