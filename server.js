@@ -50,45 +50,32 @@ var languages = {
     ,'Waray-Waray': 'war'
 }
 
-// load counters
+var uniqueips = [];
+var uniqueiphash = {};
+var numEdits = 0;
 
+// load counters
 try {
-    var readStream = fs.createReadStream('counters.json', {
-        flags: 'r',
-        encoding: 'utf8'
-    })
-    var readBuffer = ''
-    readStream.on('data', function(data) {
-        //console.log('readStream data')
-        //console.log('got "' + data + '"')
-        readBuffer += data
-    })
-    readStream.on('end', function() {
-        //console.log('readStream end')
-        //console.log('got "' + readBuffer + '"')
-        if (readBuffer.length > 0) {
-            var data = JSON.parse(readBuffer)
-            numEdits += (data.numEdits || 0)
-            if (data.uniqueips && data.uniqueips.length) {
-                data.uniqueips.forEach(function(ip) {
-                    if (!(ip in uniqueiphash)) {
-                        uniqueiphash[ip] = true
-                        uniqueips.push(ip)
-                    }
-                })
+    var readBuffer = fs.readFileSync('counters.json');
+    //console.log('read persistent data', readBuffer);
+    var data = JSON.parse(readBuffer)
+    numEdits += (data.numEdits || 0)
+    if (data.uniqueips && data.uniqueips.length) {
+        data.uniqueips.forEach(function(ip) {
+            if (!(ip in uniqueiphash)) {
+                uniqueiphash[ip] = true
+                uniqueips.push(ip)
             }
-            if (data.categorycounter) {
-                categorycounter = data.categorycounter
-            }
-            if (data.categorynamebyid) {
-                categorynamebyid = data.categorynamebyid
-            }
-        }
-        //console.log('triggering save in 10 seconds')
-        setTimeout(saveCounters, 10000)
-    })
+        })
+    }
+    if (data.categorycounter) {
+            categorycounter = data.categorycounter
+    }
+    if (data.categorynamebyid) {
+        categorynamebyid = data.categorynamebyid
+    }
 } catch(e) {
-    console.log('persistence error' + e);
+    console.log('persistence read error' + e);
 }
 
 function saveCounters() {
@@ -99,28 +86,15 @@ function saveCounters() {
         categorycounter: categorycounter,
         categorynamebyid: categorynamebyid
     })
-    var writeStream = fs.createWriteStream('counters.json', {
-        flags: 'w+',
-        encoding: 'utf8'
-    })
-    writeStream.on('close', function() {
-        //console.log('writeSteam closed');
-        setTimeout(saveCounters, 10000)
-    });
-    //console.log('writing "' + toSave + '" and closing');
-    var written = writeStream.write(toSave)
-    if (written) {
-        writeStream.end()
-    } else {
-        writeStream.on('drain', function() {
-            writeStream.end()
-        });
+
+    try {
+        fs.writeFileSync('counters.json', toSave)
+        //console.log('wrote counters persistent data');
+    } catch (e) {
+        console.log('persistence write error' + e);
     }
 }
-
-var uniqueips = [];
-var uniqueiphash = {};
-var numEdits = 0;
+setInterval(function() {saveCounters()}, 1000)
 
 var categorycounter = {};
 var categorynamebyid = {};
@@ -348,7 +322,7 @@ var ircclient = function() {
             },
             function renderContent(err) {
                 numEdits++;
-                returnobj.usercount = websocket.manager.length + waitingclients.length;
+                returnobj.usercount = websocket && websocket.manager && websocket.manager.length + waitingclients.length;
                 returnobj.editcount = numEdits;
                 returnobj.uniqueips = uniqueips.length;
                 returnobj.categorycounter = categorycounter;
@@ -413,7 +387,7 @@ var ircclient = function() {
                     //console.log('joining', chan, 'on', config.server);
                     bot.join(chan);
                 }
-            }, 15000);
+            }, 1000);
         })
         return bot;
     }
@@ -469,6 +443,7 @@ process.on('uncaughtException', function(error) {
     // From the v8 APIs, see node/src/node.js line 720
     Error.captureStackTrace(error)
     console.log('uncaughtException', error.stack);
+    process.exit(0);
 })
 
 console.log('Server running!\n')
