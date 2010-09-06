@@ -120,11 +120,19 @@ http.createServer(function (req, res) {
     // for now we'll just delegate everything to our fileServer:
 
     var page = 'index.html';
-    if (req.url.match(/\?viz=/)) {
-        page = req.url.match(/\?viz=(.+)$/)
+
+    if (req.url.match(/viz=.+\.html/)) {
+        // allow default page to be changed
+        page = req.url.match(/viz=(.+\.html)/)[1];
+        //console.log('found page', page)
+        req.url = '/' + page
+    } else if (req.url === '/') {
+        // do the right thing with the root:
+        req.url = '/' + page
     }
-    // do the right thing with the root:
-    if (req.url === '/') req.url = '/' + page
+
+    // block *.json
+    if (req.url.match(/\.json$/)) req.url = '/' + page
 
     req.addListener('end', function() {
         if (! uniqueiphash[req.socket.remoteAddress]) {
