@@ -119,20 +119,13 @@ http.createServer(function (req, res) {
     // this path should be more interesting
     // for now we'll just delegate everything to our fileServer:
 
-    var page = 'index.html';
+    var page = '/index.html';
 
-    if (req.url.match(/viz=.+\.html/)) {
-        // allow default page to be changed
-        page = req.url.match(/viz=(.+\.html)/)[1];
-        //console.log('found page', page)
-        req.url = '/' + page
-    } else if (req.url === '/') {
-        // do the right thing with the root:
-        req.url = '/' + page
-    }
-
+    // do the right thing with the root:
     // block *.json
-    if (req.url.match(/\.json$/)) req.url = '/' + page
+    if (req.url === '/' || req.url.match(/\.json$/)) {
+        req.url = page
+    }
 
     req.addListener('end', function() {
         if (! uniqueiphash[req.socket.remoteAddress]) {
@@ -160,7 +153,7 @@ http.createServer(function (req, res) {
                     }
                 }
                 
-                req.url = '/' + page + '?language=' + langstr
+                req.url = page + '?language=' + langstr
                 fileServer.serve(req,res)
             } else {
                 writeResponse(res, JSON.stringify(languages))
